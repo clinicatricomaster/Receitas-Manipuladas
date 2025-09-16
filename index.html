@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -28,9 +29,10 @@
         .capitalize-words { text-transform: capitalize; }
         
         @media print {
+            body { margin: 0; }
             body * { visibility: hidden; }
             .print-area, .print-area * { visibility: visible; }
-            .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+            .print-area { position: absolute; left: 0; top: 0; width: 100%; height: 29.7cm; }
             .no-print { display: none !important; }
             
             .print-header-title { font-size: 14px !important; }
@@ -45,6 +47,7 @@
             .dosage-block { display: inline-block; min-width: 50px; text-align: left; }
             .signature-line-above { border-top: 1px solid #333; margin-bottom: 5px; }
             .medication-item-print { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+            .avoid-break { page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -184,11 +187,11 @@
                                 <label class="block text-sm font-medium text-gray-600 mb-1">Apresentação</label>
                                 <select id="apresentacao-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
                                     <option value="">Sem especificação</option>
-                                    <option value="Ampola">Ampola</option>
-                                    <option value="Bisnaga">Bisnaga</option>
-                                    <option value="Capsula" selected>Cápsula</option>
-                                    <option value="Comprimido">Comprimido</option>
-                                    <option value="Dose">Dose</option>
+                                    <option value="Ampola(s)">Ampola(s)</option>
+                                    <option value="Bisnaga(s)">Bisnaga(s)</option>
+                                    <option value="Capsula(s)" selected>Cápsula(s)</option>
+                                    <option value="Comprimido(s)">Comprimido(s)</option>
+                                    <option value="Dose(s)">Dose(s)</option>
                                     <option value="ml">ml</option>
                                 </select>
                             </div>
@@ -218,11 +221,11 @@
                     </div>
 
                     <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                        <button onclick="salvarReceita()" class="flex-1 bg-verde-profundo text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                            Salvar Receita
+                        </button>
                         <button onclick="salvarComoModelo()" class="flex-1 bg-dourado text-verde-profundo font-semibold py-3 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200">
                             💾 Salvar como Modelo
-                        </button>
-                        <button onclick="imprimirReceita()" class="flex-1 bg-verde-profundo text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-200">
-                            🖨️ Imprimir
                         </button>
                         <button onclick="limparFormulario()" class="flex-1 bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg hover:bg-gray-400 transition-colors duration-200">
                             Limpar
@@ -275,10 +278,8 @@
             
             <div id="modelos-receitas" class="section hidden fade-in">
                 <div class="card">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-semibold text-gray-900">Modelos de Receitas</h2>
-                        <input type="text" id="busca-modelos" placeholder="Buscar modelos..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors" onkeyup="buscarModelos()">
-                    </div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Modelos de Receitas</h2>
+                    <input type="text" id="busca-modelos" placeholder="Buscar modelos..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors" onkeyup="buscarModelos()">
                     <div id="lista-modelos" class="space-y-3"></div>
                 </div>
             </div>
@@ -319,7 +320,7 @@
                             <h3 class="text-lg font-medium text-gray-800 mb-4">Logo por URL</h3>
                             <div class="space-y-4">
                                 <p class="text-gray-600">Cole a URL de sua imagem de logo (PNG, JPG, SVG).</p>
-                                <input type="text" id="logo-url-input" placeholder="http://exemplo.com/seu-logo.png" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado">
+                                <input type="text" id="logo-url-input" placeholder="http://exemplo.com/seu-logo.png" value="https://i.ibb.co/L8y2vY6/logo-tricomaster.png" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado">
                                 <button onclick="carregarLogoUrl()" class="w-full bg-dourado text-verde-profundo py-3 rounded-lg hover:bg-dourado-darker transition-colors font-medium">
                                     Salvar Logo
                                 </button>
@@ -459,6 +460,7 @@
         let observacoes = [];
         let medicos = [];
         let modelosReceitas = [];
+        let receitas = [];
         let medicamentosSelecionados = [];
         let apresentacaoGeral = null;
         let logoPersonalizado = null;
@@ -509,7 +511,7 @@
             document.getElementById('dosagem-input').value = '';
             document.getElementById('unidade-select').value = 'mg';
             document.getElementById('tipo-apresentacao-select').value = 'QSP';
-            document.getElementById('apresentacao-select').value = 'Capsula';
+            document.getElementById('apresentacao-select').value = 'Capsula(s)';
             document.getElementById('qsp-input').value = '';
             document.getElementById('observacoes-receita').value = '';
             document.getElementById('medico-nome').value = '';
@@ -967,7 +969,10 @@
                 alert('Médico atualizado!');
                 fecharModalNovoMedico();
                 carregarMedicos();
-            } catch (e) { console.error("Erro:", e); alert('Erro ao atualizar.'); }
+            } catch (e) {
+                console.error("Erro:", e);
+                alert('Erro ao atualizar.');
+            }
         }
 
         async function excluirMedico(id) {
@@ -976,7 +981,10 @@
                     await db.collection("medicos").doc(id).delete();
                     carregarMedicos();
                     alert('Médico excluído!');
-                } catch (e) { console.error("Erro:", e); alert('Erro ao excluir.'); }
+                } catch (e) {
+                    console.error("Erro:", e);
+                    alert('Erro ao excluir.');
+                }
             }
         }
 
@@ -1209,7 +1217,32 @@
         // ----------------------------------------------------
         // OUTRAS FUNÇÕES
         // ----------------------------------------------------
-    
+        
+        async function salvarReceita() {
+            const nomePaciente = document.getElementById('paciente-nome').value.trim();
+            if (!nomePaciente) {
+                alert('Por favor, informe o nome do paciente.');
+                return;
+            }
+            if (medicamentosSelecionados.length === 0) {
+                alert('Adicione pelo menos um medicamento à receita.');
+                return;
+            }
+        
+            try {
+                await Promise.all([
+                    carregarInformacoesClinica(),
+                    carregarPreviewLogo()
+                ]);
+        
+                // Imprime a receita após o carregamento dos dados da clínica e do logo.
+                imprimirReceita();
+            } catch (e) {
+                console.error("Erro ao salvar/imprimir a receita:", e);
+                alert('Ocorreu um erro. Por favor, tente novamente.');
+            }
+        }
+
         function adicionarApresentacao() {
             const tipo = document.getElementById('tipo-apresentacao-select').value;
             const apresentacao = document.getElementById('apresentacao-select').value;
@@ -1221,13 +1254,20 @@
             apresentacaoGeral = { tipo, apresentacao, qsp };
             alert('Apresentação adicionada!');
         }
+
+        function ajustarApresentacaoPorTipo() {
+            const tipo = document.getElementById('tipo-apresentacao-select').value;
+            const apresentacaoSelect = document.getElementById('apresentacao-select');
+            
+            if (tipo === 'Frasco Gotas') {
+                apresentacaoSelect.value = 'ml';
+            } else {
+                apresentacaoSelect.value = 'Capsula(s)';
+            }
+        }
     
         function imprimirReceita() {
             const nomePaciente = document.getElementById('paciente-nome').value.trim();
-            if (!nomePaciente) {
-                alert('Informe o nome do paciente para imprimir.');
-                return;
-            }
             const dataReceita = document.getElementById('data-receita').value;
             const validade = document.getElementById('validade-receita').value;
             const via = document.getElementById('via-administracao').value;
@@ -1238,7 +1278,7 @@
             // Formatação da data
             const [year, month, day] = dataReceita.split('-');
             const dataFormatada = `${day}/${month}/${year}`;
-
+            
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <html>
@@ -1246,7 +1286,7 @@
                     <title>Receita Médica - ${nomePaciente}</title>
                     <style>
                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-                        body { font-family: 'Inter', sans-serif; margin: 0; padding: 1.5cm; line-height: 1.5; color: #1F2937; }
+                        body { font-family: 'Inter', sans-serif; margin: 0; padding: 1.5cm; line-height: 1.5; color: #1F2937; position: relative; }
                         @page { size: A4; margin: 1cm 2cm; }
                         .header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; border-bottom: 2px solid #333; margin-bottom: 20px; }
                         .header h1 { font-size: 1.5rem; font-weight: bold; margin: 0; color: rgb(1, 52, 37); }
@@ -1261,6 +1301,37 @@
                         .medication-dose { text-align: right; }
                         .spacer { margin-left: 20px; }
                         .signature-line-above { border-top: 1px solid #333; margin-bottom: 5px; }
+                        .signature-container {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            position: fixed;
+                            bottom: 2cm; /* Fica a 2cm do final da página */
+                            left: 50%;
+                            transform: translateX(-50%);
+                            text-align: center;
+                            width: 100%;
+                        }
+                        .medication-info {
+                            display: flex;
+                            flex-direction: column;
+                            width: 100%;
+                            margin-bottom: 10px;
+                            page-break-inside: avoid;
+                        }
+                        .medication-info-line {
+                            display: flex;
+                            justify-content: space-between;
+                        }
+
+                        @media print {
+                            body {
+                                margin: 0;
+                            }
+                            .signature-container {
+                                page-break-after: always;
+                            }
+                        }
                     </style>
                 </head>
                 <body>
@@ -1279,21 +1350,23 @@
                     <p style="margin: 0 0 20px;"><strong>Paciente:</strong> ${nomePaciente}</p>
                     <h3 class="section-title">PRESCRIÇÃO</h3>
                     <p style="font-style: italic; font-size: 0.9rem; margin-bottom: 1rem; font-weight: normal;">${via}</p>
-                    <ul class="prescription-list" style="line-height: 1.5;">
-                        ${medicamentosSelecionados.map(med => `<li>
-                            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                                <span style="font-weight: normal; font-size: 1rem;">${med.nome}</span>
-                                <span style="font-weight: normal; font-size: 1rem;">${med.dosagem} ${med.unidade}</span>
+                    <div class="medication-item-container">
+                        ${medicamentosSelecionados.map(med => `
+                            <div class="medication-info">
+                                <div class="medication-info-line">
+                                    <span style="font-weight: normal; font-size: 1rem;">${med.nome}</span>
+                                    <span style="font-weight: normal; font-size: 1rem;">${med.dosagem} ${med.unidade}</span>
+                                </div>
                             </div>
-                        </li>`).join('')}
-                        ${apresentacaoGeral ? `<li><br><span style="font-weight: normal;">${apresentacaoGeral.tipo}: ${apresentacaoGeral.qsp || ''} ${apresentacaoGeral.apresentacao}</span></li>` : ''}
-                    </ul>
-                    <h3 class="section-title">OBS</h3>
+                        `).join('')}
+                    </div>
+                    ${apresentacaoGeral ? `<p style="font-weight: normal; font-size: 1rem; margin-top: 20px;">${apresentacaoGeral.tipo}: ${apresentacaoGeral.qsp || ''} ${apresentacaoGeral.apresentacao}</p>` : ''}
+                    <h3 class="section-title" style="margin-top: 40px;">OBS</h3>
                     <p style="font-weight: normal;">${observacoes.replace(/\n/g, '<br>')}</p>
-                    <div class="footer">
-                        <div style="height: 1px; background-color: #333; width: calc(2 * ${medicoNome.length}ch + 100px); margin: 20px auto 5px;"></div>
-                        <p>${medicoNome}</p>
-                        <p>CRM: ${medicoCrm}</p>
+                    <div class="signature-container">
+                        <div style="height: 1px; background-color: #333; width: calc(2 * ${medicoNome.length}ch + 50px); margin-bottom: 5px;"></div>
+                        <p style="font-weight: normal; margin: 0;">${medicoNome}</p>
+                        <p style="margin: 0;">CRM: ${medicoCrm}</p>
                     </div>
                 </body>
                 </html>
