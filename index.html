@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tricomaster - Dashboard Administrativo</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-verde-profundo { background-color: rgb(1, 52, 37); }
+        .text-verde-profundo { color: rgb(1, 52, 37); }
+        .bg-dourado { background-color: #c5a365; }
+        .text-dourado { color: #c5a365; }
+        .hover\:bg-dourado-darker:hover { background-color: #b3945a; }
+        .sidebar-active-link { background-color: #c5a365; color: rgb(1, 52, 37); }
+        .card { background-color: #FFFFFF; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); padding: 1.5rem; }
+        .prescription-paper { background: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .capitalize-words { text-transform: capitalize; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            .print-area, .print-area * { visibility: visible; }
+            .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+            
+            .print-header-title { font-size: 14px !important; }
+            .print-header-info { font-size: 10px !important; }
+            .print-date-validity { font-size: 12px !important; }
+            .print-patient-label { font-size: 14px !important; }
+            .print-prescription-title { font-size: 16px !important; }
+            .print-medications { font-size: 12px !important; line-height: 2; font-weight: normal; }
+            .print-observations-title { font-size: 14px !important; }
+            .print-observations-text { font-size: 12px !important; font-weight: normal; }
+            .print-signature { font-size: 12px !important; }
+            .dosage-block { display: inline-block; min-width: 50px; text-align: left; }
+            .signature-line-above { border-top: 1px solid #333; margin-bottom: 5px; }
+            .medication-item-print { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+        }
+    </style>
+</head>
+
+<body class="flex min-h-screen bg-gray-100">
+
+    <aside class="w-64 bg-verde-profundo text-white flex flex-col justify-between py-6 px-4">
+        <div>
+            <div class="flex items-center mb-8">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c5a365" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-microscope"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22V4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v18"/><path d="M14 11h.5a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H14c-1.1 0-2-.9-2-2v-3c0-1.1.9-2 2-2Z"/><path d="M10 11H9.5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2H10c1.1 0 2-.9 2-2v-3c0-1.1-.9-2-2-2Z"/><path d="M12 2v10"/></svg>
+                <h1 class="text-xl font-bold ml-2 text-dourado">Tricomaster</h1>
+            </div>
+
+            <nav class="space-y-2">
+                <button onclick="showSection('nova-receita', this)" class="nav-btn flex items-center p-3 rounded-lg hover:bg-dourado hover:text-verde-profundo transition-colors duration-200 sidebar-active-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-plus"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M15 2H9a1 1 0 0 0-1 1v1h8V3a1 1 0 0 0-1-1Z"/><line x1="12" x2="12" y1="8" y2="14"/><line x1="9" x2="15" y1="11" y2="11"/></svg>
+                    <p class="ml-3 font-medium text-sm">Nova Receita</p>
+                </button>
+                <button onclick="showSection('gerenciar-medicamentos', this)" class="nav-btn flex items-center p-3 rounded-lg hover:bg-dourado hover:text-verde-profundo transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pill"><path d="m10.5 20.5 9-9a4.5 4.5 0 0 0-9-9l-9 9a4.5 4.5 0 0 0 9 9Z"/><path d="M8.5 8.5 16 16"/></svg>
+                    <p class="ml-3 font-medium text-sm">Medicamentos</p>
+                </button>
+                <button onclick="showSection('gerenciar-observacoes', this)" class="nav-btn flex items-center p-3 rounded-lg hover:bg-dourado hover:text-verde-profundo transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-checks"><path d="m3 12 2 2 4-4"/><path d="m3 18 2 2 4-4"/><path d="M14 6h7"/><path d="M14 12h7"/><path d="M14 18h7"/></svg>
+                    <p class="ml-3 font-medium text-sm">Observações</p>
+                </button>
+                <button onclick="showSection('gerenciar-medicos', this)" class="nav-btn flex items-center p-3 rounded-lg hover:bg-dourado hover:text-verde-profundo transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-cog"><circle cx="12" cy="18" r="3"/><circle cx="12" cy="6" r="3"/><path d="M17.4 8.6c.9.8 2.2 1.2 3.4.4.9-.7 1.2-2.1.4-3a2 2 0 0 0-3-.4c-.6.8-1.5 1.4-2.4 1.8M4.6 15.4c-1.1-.9-2.2-.4-3.4.4-.9.7-1.2 2.1-.4 3a2 2 0 0 0 3 .4c.6-.8 1.5-1.4 2.4-1.8"/><path d="m14 14.5-5 3.5"/><path d="m5 10.5 2.5 5.5"/><path d="m12.5 12-3.5-5"/></svg>
+                    <p class="ml-3 font-medium text-sm">Médicos</p>
+                </button>
+                <button onclick="showSection('modelos-receitas', this)" class="nav-btn flex items-center p-3 rounded-lg hover:bg-dourado hover:text-verde-profundo transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save-all"><path d="M9 16H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10l4 4v14a2 2 0 0 1-2 2h-4"/><path d="M14 22H9a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h5l4 4v2a2 2 0 0 1-2 2h-2"/><path d="M12 14v4"/></svg>
+                    <p class="ml-3 font-medium text-sm">Modelos</p>
+                </button>
+                <button onclick="showSection('gerenciar-logo', this)" class="nav-btn flex items-center p-3 rounded-lg hover:bg-dourado hover:text-verde-profundo transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image"><path d="M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5z"/><circle cx="9" cy="9" r="2"/><path d="M19 12l-5-5-8 8V19h8l5-5z"/></svg>
+                    <p class="ml-3 font-medium text-sm">Logo</p>
+                </button>
+                <button onclick="showSection('backup', this)" class="nav-btn flex items-center p-3 rounded-lg hover:bg-dourado hover:text-verde-profundo transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-archive"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><polyline points="10 12 14 12"/></svg>
+                    <p class="ml-3 font-medium text-sm">Backup</p>
+                </button>
+            </nav>
+        </div>
+
+        <div>
+            <hr class="border-gray-700 my-4">
+            <button onclick="logout()" class="nav-btn flex items-center p-3 rounded-lg hover:bg-dourado hover:text-verde-profundo transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                <p class="ml-3 font-medium text-sm">Sair</p>
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-auto bg-gray-100">
+        <header class="bg-verde-profundo text-white p-6 sticky top-0 z-10">
+            <h2 id="page-title" class="text-xl font-semibold"></h2>
+        </header>
+
+        <div class="p-6">
+            <div id="nova-receita" class="section fade-in">
+                <div class="card max-w-4xl mx-auto">
+                    <h3 class="text-lg font-bold text-gray-900 mb-6">Criar Nova Receita</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Paciente</label>
+                            <input type="text" id="paciente-nome" placeholder="Nome do Paciente" class="capitalize-words w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Data</label>
+                            <input type="date" id="data-receita" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Validade</label>
+                            <select id="validade-receita" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+                                <option value="30 dias">30 dias</option>
+                                <option value="60 dias">60 dias</option>
+                                <option value="90 dias">90 dias</option>
+                                <option value="120 dias">120 dias</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="p-6 border border-gray-200 rounded-lg mb-6">
+                        <h4 class="text-lg font-bold text-gray-900 mb-4">Prescrição</h4>
+                        <div class="flex items-center space-x-4 mb-4">
+                            <label class="text-sm font-medium text-gray-600">Via:</label>
+                            <select id="via-administracao" class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+                                <option value="Via Oral">Via Oral</option>
+                                <option value="Via Tópica">Via Tópica</option>
+                                <option value="Via Injetável">Via Injetável</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Medicamento</label>
+                                <select id="medicamento-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors"></select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Dosagem</label>
+                                <input type="text" id="dosagem-input" placeholder="Ex: 500" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Unidade</label>
+                                <select id="unidade-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+                                    <option value="mg">mg</option>
+                                    <option value="ml">ml</option>
+                                    <option value="mcg">mcg</option>
+                                    <option value="%">%</option>
+                                    <option value="UI">UI</option>
+                                    <option value="cápsulas">cápsulas</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="adicionarMedicamentoFormulario()" class="bg-dourado text-verde-profundo font-semibold py-2 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200 text-sm mb-4">
+                            + Adicionar à Receita
+                        </button>
+                        <div id="medicamentos-selecionados" class="space-y-3"></div>
+                    </div>
+
+                    <div class="p-6 border border-gray-200 rounded-lg mb-6">
+                        <h4 class="text-lg font-bold text-gray-900 mb-4">Apresentação</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Tipo</label>
+                                <select id="tipo-apresentacao-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors" onchange="ajustarApresentacaoPorTipo()">
+                                    <option value="Frasco Gotas">Frasco Gotas</option>
+                                    <option value="QSP" selected>QSP</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">QT:</label>
+                                <input type="text" id="qsp-input" placeholder="Ex: 30ml" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Apresentação</label>
+                                <select id="apresentacao-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+                                    <option value="">Sem especificação</option>
+                                    <option value="Ampola">Ampola</option>
+                                    <option value="Bisnaga">Bisnaga</option>
+                                    <option value="Capsula" selected>Cápsula</option>
+                                    <option value="Comprimido">Comprimido</option>
+                                    <option value="Dose">Dose</option>
+                                    <option value="ml">ml</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="adicionarApresentacao()" class="bg-dourado text-verde-profundo font-semibold py-2 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200 text-sm">
+                            + Adicionar Apresentação
+                        </button>
+                    </div>
+
+                    <div class="p-6 border border-gray-200 rounded-lg mb-6">
+                        <h4 class="text-lg font-bold text-gray-900 mb-4">Observações</h4>
+                        <textarea id="observacoes-receita" placeholder="Instruções gerais, recomendações..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors h-24 resize-none mb-4"></textarea>
+                        <button onclick="abrirModalObservacoes()" class="bg-dourado text-verde-profundo font-semibold py-2 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200 text-sm">
+                            + Adicionar Observação
+                        </button>
+                    </div>
+
+                    <div class="p-6 border border-gray-200 rounded-lg mb-6">
+                        <h4 class="text-lg font-bold text-gray-900 mb-4">Dados do Médico</h4>
+                        <button onclick="abrirModalMedicos()" class="bg-verde-profundo text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-200 text-sm mb-4">
+                            Selecionar Médico
+                        </button>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" id="medico-nome" placeholder="Nome do Médico" class="capitalize-words w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+                            <input type="text" id="medico-crm" placeholder="CRM" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                        <button onclick="salvarComoModelo()" class="flex-1 bg-dourado text-verde-profundo font-semibold py-3 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200">
+                            💾 Salvar como Modelo
+                        </button>
+                        <button onclick="imprimirReceita()" class="flex-1 bg-verde-profundo text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                            🖨️ Imprimir
+                        </button>
+                        <button onclick="limparFormulario()" class="flex-1 bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg hover:bg-gray-400 transition-colors duration-200">
+                            Limpar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="gerenciar-medicamentos" class="section hidden fade-in">
+                <div class="card">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
+                        <h2 class="text-xl font-semibold text-gray-900">Gerenciar Medicamentos</h2>
+                        <div class="flex space-x-3">
+                            <input type="text" id="busca-medicamentos" placeholder="Buscar medicamentos..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors" onkeyup="buscarMedicamentos()">
+                            <button onclick="abrirModalImportarExcel()" class="bg-dourado text-verde-profundo px-4 py-2 rounded-lg hover:bg-dourado-darker transition-colors">
+                                📊 Importar Excel
+                            </button>
+                            <button onclick="abrirModalNovoMedicamento()" class="bg-verde-profundo text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                                + Novo Medicamento
+                            </button>
+                        </div>
+                    </div>
+                    <div id="lista-medicamentos" class="space-y-3"></div>
+                </div>
+            </div>
+            
+            <div id="gerenciar-observacoes" class="section hidden fade-in">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Gerenciar Observações</h2>
+                        <button onclick="abrirModalNovaObservacao()" class="bg-verde-profundo text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                            + Nova Observação
+                        </button>
+                    </div>
+                    <div id="lista-observacoes-gerenciar" class="space-y-3"></div>
+                </div>
+            </div>
+            
+            <div id="gerenciar-medicos" class="section hidden fade-in">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Gerenciar Médicos</h2>
+                        <button onclick="abrirModalNovoMedico()" class="bg-verde-profundo text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                            + Novo Médico
+                        </button>
+                    </div>
+                    <div id="lista-medicos-gerenciar" class="space-y-3"></div>
+                </div>
+            </div>
+            
+            <div id="modelos-receitas" class="section hidden fade-in">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Modelos de Receitas</h2>
+                        <input type="text" id="busca-modelos" placeholder="Buscar modelos..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors" onkeyup="buscarModelos()">
+                    </div>
+                    <div id="lista-modelos" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <div id="gerenciar-logo" class="section hidden fade-in">
+                <div class="card">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Configurações da Clínica e Logo</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-800 mb-4">Informações da Clínica</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-600 mb-1">Nome</label>
+                                    <input type="text" id="clinica-nome" placeholder="Tricomaster Medicina Capilar" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-600 mb-1">Endereço 1</label>
+                                    <input type="text" id="clinica-endereco1" placeholder="Rua Emilio Mallet, 1166" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-600 mb-1">Endereço 2</label>
+                                    <input type="text" id="clinica-endereco2" placeholder="Rua Conselheiro Saraiva, 306 / sala 115" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-600 mb-1">Telefone</label>
+                                    <input type="text" id="clinica-telefone" placeholder="11 2091-7855" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-600 mb-1">Whatsapp</label>
+                                    <input type="text" id="clinica-whatsapp" placeholder="11 93073-1230" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado">
+                                </div>
+                                <button onclick="salvarInformacoesClinica()" class="w-full bg-verde-profundo text-white py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium">
+                                    Salvar Informações
+                                </button>
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-800 mb-4">Logo por URL</h3>
+                            <div class="space-y-4">
+                                <p class="text-gray-600">Cole a URL de sua imagem de logo (PNG, JPG, SVG).</p>
+                                <input type="text" id="logo-url-input" placeholder="http://exemplo.com/seu-logo.png" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado">
+                                <button onclick="carregarLogoUrl()" class="w-full bg-dourado text-verde-profundo py-3 rounded-lg hover:bg-dourado-darker transition-colors font-medium">
+                                    Salvar Logo
+                                </button>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-800 mt-6 mb-4">Preview do Logo</h3>
+                            <div id="preview-logo" class="mb-4 p-4 border border-gray-100 rounded-lg bg-gray-50 min-h-28 flex items-center justify-center">
+                                <p class="text-gray-500">Nenhum logo personalizado carregado</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="removerLogo()" class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors font-medium">
+                                    🗑️ Remover Logo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="backup" class="section hidden fade-in">
+                <div class="card">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Backup e Restauração</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-800 mb-4">Fazer Backup</h3>
+                            <p class="text-gray-600 mb-4">Baixe todos os dados em um arquivo JSON seguro.</p>
+                            <button onclick="fazerBackup()" class="w-full bg-verde-profundo text-white py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium">
+                                📥 Baixar Backup JSON
+                            </button>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-800 mb-4">Restaurar Backup</h3>
+                            <p class="text-gray-600 mb-4">Carregue um arquivo JSON para restaurar os dados.</p>
+                            <input type="file" id="arquivo-backup" accept=".json" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-lg">
+                            <button onclick="restaurarBackup()" class="w-full bg-dourado text-verde-profundo py-3 rounded-lg hover:bg-dourado-darker transition-colors font-medium">
+                                📤 Restaurar Backup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="modal-novo-medicamento" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="card max-w-md w-full">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Novo Medicamento</h3>
+            <div class="space-y-4">
+                <input type="text" id="novo-medicamento-nome" placeholder="Nome do Medicamento" class="capitalize-words w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+            </div>
+            <div class="flex space-x-3 mt-6">
+                <button id="btn-salvar-med" onclick="salvarNovoMedicamento()" class="flex-1 bg-verde-profundo text-white py-2 rounded-lg hover:bg-gray-700 transition-colors">Salvar</button>
+                <button onclick="fecharModalNovoMedicamento()" class="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-importar-excel" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="card max-w-md w-full">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Importar Medicamentos do Excel</h3>
+            <div class="bg-gray-100 border border-gray-200 rounded-lg p-4 mb-4">
+                <h4 class="font-medium text-gray-800 mb-2">📋 Formato do arquivo:</h4>
+                <ul class="text-gray-600 text-sm space-y-1">
+                    <li>• Arquivo Excel (.xlsx ou .xls)</li>
+                    <li>• Coluna A: Nome do medicamento</li>
+                </ul>
+            </div>
+            <input type="file" id="arquivo-excel" accept=".xlsx,.xls" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-lg">
+            <div class="flex items-center">
+                <input type="checkbox" id="primeira-linha-cabecalho" checked class="mr-2">
+                <label for="primeira-linha-cabecalho" class="text-sm text-gray-700">Primeira linha é cabeçalho</label>
+            </div>
+            <div class="flex space-x-3 mt-6">
+                <button onclick="importarMedicamentosExcel()" class="flex-1 bg-dourado text-verde-profundo py-2 rounded-lg hover:bg-dourado-darker transition-colors">Importar</button>
+                <button onclick="fecharModalImportarExcel()" class="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-nova-observacao" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="card max-w-md w-full">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Nova Observação</h3>
+            <textarea id="nova-observacao-texto" placeholder="Digite a observação..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors h-24 resize-none"></textarea>
+            <div class="flex space-x-3 mt-4">
+                <button id="btn-salvar-obs" onclick="salvarNovaObservacao()" class="flex-1 bg-verde-profundo text-white py-2 rounded-lg hover:bg-gray-700 transition-colors">Salvar</button>
+                <button onclick="fecharModalNovaObservacao()" class="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-observacoes" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="card max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Observações Pré-cadastradas</h3>
+            <div id="lista-observacoes-modal" class="space-y-2"></div>
+            <button onclick="fecharModalObservacoes()" class="w-full mt-4 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors">Fechar</button>
+        </div>
+    </div>
+    
+    <div id="modal-novo-medico" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="card max-w-md w-full">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Novo Médico</h3>
+            <div class="space-y-4">
+                <input type="text" id="novo-medico-nome" placeholder="Nome do Médico" class="capitalize-words w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+                <input type="text" id="novo-medico-crm" placeholder="CRM" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+            </div>
+            <div class="flex space-x-3 mt-6">
+                <button id="btn-salvar-medico" onclick="salvarNovoMedico()" class="flex-1 bg-verde-profundo text-white py-2 rounded-lg hover:bg-gray-700 transition-colors">Salvar</button>
+                <button onclick="fecharModalNovoMedico()" class="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-medicos" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="card max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Selecionar Médico</h3>
+            <div id="lista-medicos-modal" class="space-y-2"></div>
+            <button onclick="fecharModalMedicos()" class="w-full mt-4 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors">Fechar</button>
+        </div>
+    </div>
+    
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+          apiKey: "AIzaSyC5dU8J88RRetxOI_E2BKHXw6Qz5ouX640",
+          authDomain: "gerenciador-nf-adce4.firebaseapp.com",
+          projectId: "gerenciador-nf-adce4",
+          storageBucket: "gerenciador-nf-adce4.firebasestorage.app",
+          messagingSenderId: "133335508527",
+          appId: "1:133335508527:web:4052debc75ecabcc68c8da"
+        };
+    
+        // Inicializa o Firebase e o Firestore
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    
+        // Variáveis de estado
+        let medicamentos = [];
+        let observacoes = [];
+        let medicos = [];
+        let modelosReceitas = [];
+        let medicamentosSelecionados = [];
+        let apresentacaoGeral = null;
+        let logoPersonalizado = null;
+        let clinicaInfo = {};
+        
+        // ----------------------------------------------------
+        // FUNÇÕES GERAIS E DE RENDERIZAÇÃO
+        // ----------------------------------------------------
+    
+        function showSection(sectionId, btn) {
+            document.querySelectorAll('.section').forEach(section => section.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+    
+            document.querySelectorAll('.nav-btn').forEach(navBtn => navBtn.classList.remove('sidebar-active-link'));
+            if (btn) btn.classList.add('sidebar-active-link');
+    
+            const pageTitleMap = {
+                'nova-receita': 'Criar Nova Receita',
+                'gerenciar-medicamentos': 'Gerenciar Medicamentos',
+                'gerenciar-observacoes': 'Gerenciar Observações',
+                'gerenciar-medicos': 'Gerenciar Médicos',
+                'modelos-receitas': 'Modelos de Receitas',
+                'gerenciar-logo': 'Configurações da Clínica',
+                'backup': 'Backup e Restauração'
+            };
+            document.getElementById('page-title').textContent = pageTitleMap[sectionId];
+    
+            if (sectionId === 'gerenciar-medicamentos') carregarListaMedicamentos();
+            if (sectionId === 'gerenciar-observacoes') carregarListaObservacoes();
+            if (sectionId === 'gerenciar-medicos') carregarListaMedicos();
+            if (sectionId === 'modelos-receitas') carregarModelosReceitas();
+            if (sectionId === 'gerenciar-logo') {
+                carregarInformacoesClinica();
+                carregarPreviewLogo();
+            }
+        }
+    
+        function capitalizeWords(str) {
+            return str.replace(/\b\w/g, l => l.toUpperCase());
+        }
+    
+        function limparFormulario() {
+            document.getElementById('paciente-nome').value = '';
+            document.getElementById('data-receita').value = new Date().toISOString().split('T')[0];
+            document.getElementById('validade-receita').value = '30 dias';
+            document.getElementById('via-administracao').value = 'Via Oral';
+            document.getElementById('medicamento-select').value = '';
+            document.getElementById('dosagem-input').value = '';
+            document.getElementById('unidade-select').value = 'mg';
+            document.getElementById('tipo-apresentacao-select').value = 'QSP';
+            document.getElementById('apresentacao-select').value = 'Capsula';
+            document.getElementById('qsp-input').value = '';
+            document.getElementById('observacoes-receita').value = '';
+            document.getElementById('medico-nome').value = '';
+            document.getElementById('medico-crm').value = '';
+            medicamentosSelecionados = [];
+            apresentacaoGeral = null;
+            atualizarMedicamentosSelecionados();
+        }
+    
+        function atualizarMedicamentosSelecionados() {
+            const container = document.getElementById('medicamentos-selecionados');
+            container.innerHTML = '';
+            medicamentosSelecionados.forEach((med, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg';
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <p class="text-gray-900 text-base font-medium">${med.nome} <span class="ml-2">${med.dosagem}${med.unidade}</span></p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="editarMedicamentoSelecionado(${index})" class="p-1 rounded-full text-dourado hover:text-dourado-darker transition-colors" title="Editar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c5a365" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12s-.4-1.2-1.2-2c-.9-1.2-2.1-1.6-3-2.4L10 2l-6 6 8 8 5.6-5.6c.8-.8 1.2-2.1 2.4-3Z"/><path d="M12 2l-6 6v4"/></svg>
+                        </button>
+                        <button onclick="removerMedicamentoSelecionado(${index})" class="p-1 rounded-full text-red-500 hover:text-red-700 transition-colors" title="Excluir">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+    
+        function removerMedicamentoSelecionado(index) {
+            medicamentosSelecionados.splice(index, 1);
+            atualizarMedicamentosSelecionados();
+        }
+    
+        function editarMedicamentoSelecionado(index) {
+            const med = medicamentosSelecionados[index];
+            const newDosagem = prompt(`Editar dosagem de ${med.nome}:`, med.dosagem);
+            if (newDosagem !== null) {
+                med.dosagem = newDosagem;
+                const newUnidade = prompt(`Editar unidade de ${med.nome}:`, med.unidade);
+                if (newUnidade !== null) {
+                    med.unidade = newUnidade;
+                    atualizarMedicamentosSelecionados();
+                }
+            }
+        }
+    
+        // ----------------------------------------------------
+        // GERENCIAMENTO DE MEDICAMENTOS (CRUD Firebase)
+        // ----------------------------------------------------
+    
+        async function carregarMedicamentos() {
+            try {
+                const snapshot = await db.collection("medicamentos").orderBy("nome").get();
+                medicamentos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                carregarMedicamentosDropdown();
+                carregarListaMedicamentos();
+            } catch (e) {
+                console.error("Erro ao carregar medicamentos:", e);
+                alert("Erro ao carregar medicamentos. Verifique sua conexão.");
+            }
+        }
+    
+        function carregarMedicamentosDropdown() {
+            const select = document.getElementById('medicamento-select');
+            select.innerHTML = '<option value="">Selecione um medicamento</option>';
+            medicamentos.forEach(med => {
+                const option = document.createElement('option');
+                option.value = med.id;
+                option.textContent = med.nome;
+                select.appendChild(option);
+            });
+        }
+    
+        function carregarListaMedicamentos() {
+            const lista = document.getElementById('lista-medicamentos');
+            lista.innerHTML = '';
+            if (medicamentos.length === 0) {
+                lista.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhum medicamento cadastrado.</p>';
+                return;
+            }
+            medicamentos.forEach(med => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors';
+                div.innerHTML = `
+                    <p class="font-medium text-gray-900 flex-1">${med.nome}</p>
+                    <div class="flex space-x-2">
+                        <button onclick="editarMedicamento('${med.id}')" class="p-1 rounded-full hover:bg-gray-200 transition-colors" title="Editar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7281" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-edit"><path d="M22 12s-.4-1.2-1.2-2c-.9-1.2-2.1-1.6-3-2.4L10 2l-6 6 8 8 5.6-5.6c.8-.8 1.2-2.1 2.4-3Z"/><path d="M12 2l-6 6v4"/></svg>
+                        </button>
+                        <button onclick="excluirMedicamento('${med.id}')" class="p-1 rounded-full hover:bg-gray-200 transition-colors" title="Excluir">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                        </button>
+                    </div>
+                `;
+                lista.appendChild(div);
+            });
+        }
+    
+        function adicionarMedicamentoFormulario() {
+            const medId = document.getElementById('medicamento-select').value;
+            const dosagem = document.getElementById('dosagem-input').value.trim();
+            const unidade = document.getElementById('unidade-select').value;
+    
+            if (!medId || !dosagem) {
+                alert('Selecione um medicamento e a dosagem.');
+                return;
+            }
+    
+            const med = medicamentos.find(m => m.id === medId);
+            if (med && !medicamentosSelecionados.find(m => m.id === med.id)) {
+                medicamentosSelecionados.push({
+                    id: med.id,
+                    nome: med.nome,
+                    dosagem,
+                    unidade
+                });
+                atualizarMedicamentosSelecionados();
+            } else {
+                alert('Este medicamento já foi adicionado.');
+            }
+        }
+    
+        async function salvarNovoMedicamento() {
+            const nome = document.getElementById('novo-medicamento-nome').value.trim();
+            if (!nome) { alert('Digite o nome.'); return; }
+    
+            const btn = document.getElementById('btn-salvar-med');
+            const originalText = btn.textContent;
+            btn.textContent = 'Salvando...';
+            btn.disabled = true;
+    
+            try {
+                await db.collection("medicamentos").add({ nome: capitalizeWords(nome) });
+                alert('Medicamento salvo com sucesso!');
+                fecharModalNovoMedicamento();
+                carregarMedicamentos();
+            } catch (e) {
+                console.error("Erro ao salvar:", e);
+                alert('Erro ao salvar.');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+    
+        async function editarMedicamento(id) {
+            const med = medicamentos.find(m => m.id === id);
+            if (!med) return;
+    
+            const nomeInput = document.getElementById('novo-medicamento-nome');
+            nomeInput.value = med.nome;
+            document.getElementById('btn-salvar-med').textContent = 'Atualizar';
+            document.getElementById('btn-salvar-med').onclick = () => salvarEdicaoMedicamento(id);
+            document.getElementById('modal-novo-medicamento').classList.remove('hidden');
+        }
+    
+        async function salvarEdicaoMedicamento(id) {
+            const nome = document.getElementById('novo-medicamento-nome').value.trim();
+            if (!nome) { alert('Digite o nome.'); return; }
+    
+            const btn = document.getElementById('btn-salvar-med');
+            const originalText = btn.textContent;
+            btn.textContent = 'Atualizando...';
+            btn.disabled = true;
+    
+            try {
+                await db.collection("medicamentos").doc(id).update({ nome: capitalizeWords(nome) });
+                alert('Medicamento atualizado!');
+                fecharModalNovoMedicamento();
+                carregarMedicamentos();
+            } catch (e) {
+                console.error("Erro ao atualizar:", e);
+                alert('Erro ao atualizar.');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+    
+        async function excluirMedicamento(id) {
+            if (confirm('Tem certeza? Esta ação não pode ser desfeita.')) {
+                try {
+                    await db.collection("medicamentos").doc(id).delete();
+                    carregarMedicamentos();
+                    alert('Medicamento excluído!');
+                } catch (e) {
+                    console.error("Erro ao excluir:", e);
+                    alert('Erro ao excluir.');
+                }
+            }
+        }
+    
+        function abrirModalNovoMedicamento() {
+            document.getElementById('novo-medicamento-nome').value = '';
+            document.getElementById('btn-salvar-med').textContent = 'Salvar';
+            document.getElementById('btn-salvar-med').onclick = salvarNovoMedicamento;
+            document.getElementById('modal-novo-medicamento').classList.remove('hidden');
+        }
+    
+        function fecharModalNovoMedicamento() {
+            document.getElementById('modal-novo-medicamento').classList.add('hidden');
+        }
+
+        function abrirModalImportarExcel() {
+            document.getElementById('modal-importar-excel').classList.remove('hidden');
+        }
+
+        function fecharModalImportarExcel() {
+            document.getElementById('modal-importar-excel').classList.add('hidden');
+        }
+
+        async function importarMedicamentosExcel() {
+            const file = document.getElementById('arquivo-excel').files[0];
+            if (!file) { alert('Selecione um arquivo.'); return; }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    const hasHeader = document.getElementById('primeira-linha-cabecalho').checked;
+                    const startIndex = hasHeader ? 1 : 0;
+                    
+                    let newMeds = [];
+                    for (let i = startIndex; i < jsonData.length; i++) {
+                        const nome = jsonData[i][0]?.toString().trim();
+                        if (nome) {
+                            const isDuplicate = medicamentos.some(m => m.nome.toLowerCase() === nome.toLowerCase());
+                            if (!isDuplicate) {
+                                newMeds.push({ nome: capitalizeWords(nome) });
+                            }
+                        }
+                    }
+
+                    if (newMeds.length > 0) {
+                        const batch = db.batch();
+                        newMeds.forEach(med => {
+                            const docRef = db.collection("medicamentos").doc();
+                            batch.set(docRef, med);
+                        });
+                        await batch.commit();
+                        alert(`${newMeds.length} medicamentos importados com sucesso!`);
+                        carregarMedicamentos();
+                        fecharModalImportarExcel();
+                    } else {
+                        alert('Nenhum medicamento novo encontrado no arquivo.');
+                    }
+                } catch (error) {
+                    console.error("Erro na importação:", error);
+                    alert('Erro ao ler o arquivo Excel. Verifique o formato.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    
+        // ----------------------------------------------------
+        // GERENCIAMENTO DE OBSERVAÇÕES (CRUD Firebase)
+        // ----------------------------------------------------
+    
+        async function carregarObservacoes() {
+            try {
+                const snapshot = await db.collection("observacoes").get();
+                observacoes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                carregarListaObservacoes();
+            } catch (e) {
+                console.error("Erro ao carregar observações:", e);
+            }
+        }
+    
+        function carregarListaObservacoes() {
+            const lista = document.getElementById('lista-observacoes-gerenciar');
+            lista.innerHTML = '';
+            observacoes.forEach(obs => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors';
+                div.innerHTML = `
+                    <p class="text-gray-900 flex-1 text-sm">${obs.texto}</p>
+                    <div class="flex space-x-2">
+                        <button onclick="editarObservacao('${obs.id}')" class="p-1 rounded-full hover:bg-gray-200 transition-colors" title="Editar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7281" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-edit"><path d="M22 12s-.4-1.2-1.2-2c-.9-1.2-2.1-1.6-3-2.4L10 2l-6 6 8 8 5.6-5.6c.8-.8 1.2-2.1 2.4-3Z"/><path d="M12 2l-6 6v4"/></svg>
+                        </button>
+                        <button onclick="excluirObservacao('${obs.id}')" class="p-1 rounded-full hover:bg-gray-200 transition-colors" title="Excluir">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                        </button>
+                    </div>
+                `;
+                lista.appendChild(div);
+            });
+        }
+    
+        async function salvarNovaObservacao() {
+            const texto = document.getElementById('nova-observacao-texto').value.trim();
+            if (!texto) { alert('Digite o texto.'); return; }
+    
+            try {
+                await db.collection("observacoes").add({ texto });
+                alert('Observação salva!');
+                fecharModalNovaObservacao();
+                carregarObservacoes();
+            } catch (e) {
+                console.error("Erro ao salvar:", e);
+                alert('Erro ao salvar.');
+            }
+        }
+    
+        async function editarObservacao(id) {
+            const obs = observacoes.find(o => o.id === id);
+            if (!obs) return;
+    
+            const textoInput = document.getElementById('nova-observacao-texto');
+            textoInput.value = obs.texto;
+            document.getElementById('btn-salvar-obs').textContent = 'Atualizar';
+            document.getElementById('btn-salvar-obs').onclick = () => salvarEdicaoObservacao(id);
+            document.getElementById('modal-nova-observacao').classList.remove('hidden');
+        }
+    
+        async function salvarEdicaoObservacao(id) {
+            const texto = document.getElementById('nova-observacao-texto').value.trim();
+            if (!texto) { alert('Digite o texto.'); return; }
+    
+            try {
+                await db.collection("observacoes").doc(id).update({ texto });
+                alert('Observação atualizada!');
+                fecharModalNovaObservacao();
+                carregarObservacoes();
+            } catch (e) {
+                console.error("Erro ao atualizar:", e);
+                alert('Erro ao atualizar.');
+            }
+        }
+    
+        async function excluirObservacao(id) {
+            if (confirm('Tem certeza? Esta ação não pode ser desfeita.')) {
+                try {
+                    await db.collection("observacoes").doc(id).delete();
+                    carregarObservacoes();
+                    alert('Observação excluída!');
+                } catch (e) {
+                    console.error("Erro ao excluir:", e);
+                    alert('Erro ao excluir.');
+                }
+            }
+        }
+    
+        function abrirModalNovaObservacao() {
+            document.getElementById('nova-observacao-texto').value = '';
+            document.getElementById('btn-salvar-obs').textContent = 'Salvar';
+            document.getElementById('btn-salvar-obs').onclick = salvarNovaObservacao;
+            document.getElementById('modal-nova-observacao').classList.remove('hidden');
+        }
+    
+        function fecharModalNovaObservacao() {
+            document.getElementById('modal-nova-observacao').classList.add('hidden');
+        }
+
+        function abrirModalObservacoes() {
+            const lista = document.getElementById('lista-observacoes-modal');
+            lista.innerHTML = '';
+            observacoes.forEach(obs => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50';
+                div.innerHTML = `
+                    <p class="flex-1 text-gray-700">${obs.texto}</p>
+                    <button onclick="adicionarObservacaoAoCampo('${obs.texto.replace(/'/g, "\\'")}')" class="bg-dourado text-verde-profundo px-3 py-1 rounded text-sm hover:bg-dourado-darker transition-colors">Adicionar</button>
+                `;
+                lista.appendChild(div);
+            });
+            document.getElementById('modal-observacoes').classList.remove('hidden');
+        }
+
+        function fecharModalObservacoes() {
+            document.getElementById('modal-observacoes').classList.add('hidden');
+        }
+
+        function adicionarObservacaoAoCampo(texto) {
+            const textarea = document.getElementById('observacoes-receita');
+            textarea.value += (textarea.value ? '\n' : '') + texto;
+            fecharModalObservacoes();
+        }
+    
+        // ----------------------------------------------------
+        // GERENCIAMENTO DE MÉDICOS (CRUD Firebase)
+        // ----------------------------------------------------
+    
+        async function carregarMedicos() {
+            try {
+                const snapshot = await db.collection("medicos").orderBy("nome").get();
+                medicos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                carregarListaMedicos();
+            } catch (e) {
+                console.error("Erro ao carregar médicos:", e);
+            }
+        }
+    
+        function carregarListaMedicos() {
+            const lista = document.getElementById('lista-medicos-gerenciar');
+            lista.innerHTML = '';
+            medicos.forEach(medico => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors';
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-900">${medico.nome}</p>
+                        <p class="text-sm text-gray-600">CRM: ${medico.crm}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="editarMedico('${medico.id}')" class="p-1 rounded-full hover:bg-gray-200 transition-colors" title="Editar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7281" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-edit"><path d="M22 12s-.4-1.2-1.2-2c-.9-1.2-2.1-1.6-3-2.4L10 2l-6 6 8 8 5.6-5.6c.8-.8 1.2-2.1 2.4-3Z"/><path d="M12 2l-6 6v4"/></svg>
+                        </button>
+                        <button onclick="excluirMedico('${medico.id}')" class="p-1 rounded-full hover:bg-gray-200 transition-colors" title="Excluir">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                        </button>
+                    </div>
+                `;
+                lista.appendChild(div);
+            });
+        }
+
+        async function salvarNovoMedico() {
+            const nome = document.getElementById('novo-medico-nome').value.trim();
+            const crm = document.getElementById('novo-medico-crm').value.trim();
+            if (!nome || !crm) { alert('Preencha todos os campos.'); return; }
+            try {
+                await db.collection("medicos").add({ nome: capitalizeWords(nome), crm });
+                alert('Médico salvo!');
+                fecharModalNovoMedico();
+                carregarMedicos();
+            } catch (e) { console.error("Erro:", e); alert('Erro ao salvar.'); }
+        }
+
+        async function editarMedico(id) {
+            const medico = medicos.find(m => m.id === id);
+            if (!medico) return;
+            document.getElementById('novo-medico-nome').value = medico.nome;
+            document.getElementById('novo-medico-crm').value = medico.crm;
+            document.getElementById('btn-salvar-medico').textContent = 'Atualizar';
+            document.getElementById('btn-salvar-medico').onclick = () => salvarEdicaoMedico(id);
+            document.getElementById('modal-novo-medico').classList.remove('hidden');
+        }
+
+        async function salvarEdicaoMedico(id) {
+            const nome = document.getElementById('novo-medico-nome').value.trim();
+            const crm = document.getElementById('novo-medico-crm').value.trim();
+            if (!nome || !crm) { alert('Preencha todos os campos.'); return; }
+            try {
+                await db.collection("medicos").doc(id).update({ nome: capitalizeWords(nome), crm });
+                alert('Médico atualizado!');
+                fecharModalNovoMedico();
+                carregarMedicos();
+            } catch (e) { console.error("Erro:", e); alert('Erro ao atualizar.'); }
+        }
+
+        async function excluirMedico(id) {
+            if (confirm('Tem certeza?')) {
+                try {
+                    await db.collection("medicos").doc(id).delete();
+                    carregarMedicos();
+                    alert('Médico excluído!');
+                } catch (e) { console.error("Erro:", e); alert('Erro ao excluir.'); }
+            }
+        }
+
+        function abrirModalNovoMedico() {
+            document.getElementById('novo-medico-nome').value = '';
+            document.getElementById('novo-medico-crm').value = '';
+            document.getElementById('btn-salvar-medico').textContent = 'Salvar';
+            document.getElementById('btn-salvar-medico').onclick = salvarNovoMedico;
+            document.getElementById('modal-novo-medico').classList.remove('hidden');
+        }
+
+        function fecharModalNovoMedico() {
+            document.getElementById('modal-novo-medico').classList.add('hidden');
+        }
+
+        function abrirModalMedicos() {
+            const lista = document.getElementById('lista-medicos-modal');
+            lista.innerHTML = '';
+            medicos.forEach(medico => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50';
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-900">${medico.nome}</p>
+                        <p class="text-sm text-gray-600">CRM: ${medico.crm}</p>
+                    </div>
+                    <button onclick="selecionarMedico('${medico.id}')" class="bg-dourado text-verde-profundo px-3 py-1 rounded text-sm hover:bg-dourado-darker transition-colors">Selecionar</button>
+                `;
+                lista.appendChild(div);
+            });
+            document.getElementById('modal-medicos').classList.remove('hidden');
+        }
+
+        function fecharModalMedicos() {
+            document.getElementById('modal-medicos').classList.add('hidden');
+        }
+
+        function selecionarMedico(id) {
+            const medico = medicos.find(m => m.id === id);
+            if (medico) {
+                document.getElementById('medico-nome').value = medico.nome;
+                document.getElementById('medico-crm').value = medico.crm;
+            }
+            fecharModalMedicos();
+        }
+    
+        // ----------------------------------------------------
+        // GERENCIAMENTO DE MODELOS DE RECEITA (CRUD Firebase)
+        // ----------------------------------------------------
+
+        async function carregarModelosReceitas() {
+            try {
+                const snapshot = await db.collection("modelosReceitas").orderBy("nome").get();
+                modelosReceitas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderizarModelosReceitas();
+            } catch (e) {
+                console.error("Erro ao carregar modelos:", e);
+                alert("Erro ao carregar modelos de receita.");
+            }
+        }
+
+        function renderizarModelosReceitas() {
+            const lista = document.getElementById('lista-modelos');
+            lista.innerHTML = '';
+            if (modelosReceitas.length === 0) {
+                lista.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhum modelo salvo ainda.</p>';
+                return;
+            }
+            modelosReceitas.forEach(modelo => {
+                const modeloDiv = document.createElement('div');
+                modeloDiv.className = 'card';
+                modeloDiv.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-gray-900">${modelo.nome}</h3>
+                            <p class="text-gray-600 text-sm">Medicamentos: ${modelo.medicamentos.map(m => m.nome).join(', ')}</p>
+                            <p class="text-gray-600 text-sm">Via: ${modelo.via}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="usarModelo('${modelo.id}')" class="bg-dourado text-verde-profundo px-3 py-1 rounded text-sm hover:bg-dourado-darker transition-colors">Usar</button>
+                            <button onclick="excluirModelo('${modelo.id}')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors">Excluir</button>
+                        </div>
+                    </div>
+                `;
+                lista.appendChild(modeloDiv);
+            });
+        }
+
+        async function salvarComoModelo() {
+            if (medicamentosSelecionados.length === 0) {
+                alert('Adicione medicamentos para salvar como modelo.');
+                return;
+            }
+            const nomeModelo = prompt('Digite um nome para o modelo:');
+            if (!nomeModelo || !nomeModelo.trim()) return;
+
+            try {
+                const modelo = {
+                    nome: nomeModelo.trim(),
+                    medicamentos: medicamentosSelecionados,
+                    apresentacao: apresentacaoGeral,
+                    validade: document.getElementById('validade-receita').value,
+                    via: document.getElementById('via-administracao').value,
+                    observacoes: document.getElementById('observacoes-receita').value,
+                    medico: {
+                        nome: document.getElementById('medico-nome').value,
+                        crm: document.getElementById('medico-crm').value
+                    }
+                };
+                await db.collection("modelosReceitas").add(modelo);
+                alert('Modelo salvo com sucesso!');
+                carregarModelosReceitas();
+            } catch (e) {
+                console.error("Erro ao salvar modelo:", e);
+                alert('Erro ao salvar o modelo.');
+            }
+        }
+
+        async function usarModelo(id) {
+            const modelo = modelosReceitas.find(m => m.id === id);
+            if (!modelo) return;
+            limparFormulario();
+            document.getElementById('validade-receita').value = modelo.validade;
+            document.getElementById('via-administracao').value = modelo.via;
+            document.getElementById('observacoes-receita').value = modelo.observacoes;
+            document.getElementById('medico-nome').value = modelo.medico.nome;
+            document.getElementById('medico-crm').value = modelo.medico.crm;
+            medicamentosSelecionados = modelo.medicamentos;
+            apresentacaoGeral = modelo.apresentacao;
+            atualizarMedicamentosSelecionados();
+            showSection('nova-receita', document.querySelector('[onclick="showSection(\'nova-receita\', this)"]'));
+            alert('Modelo carregado! Adicione o nome do paciente para continuar.');
+        }
+
+        async function excluirModelo(id) {
+            if (confirm('Tem certeza?')) {
+                try {
+                    await db.collection("modelosReceitas").doc(id).delete();
+                    carregarModelosReceitas();
+                    alert('Modelo excluído!');
+                } catch (e) {
+                    console.error("Erro ao excluir modelo:", e);
+                    alert('Erro ao excluir o modelo.');
+                }
+            }
+        }
+    
+        // ----------------------------------------------------
+        // CONFIGURAÇÕES DA CLÍNICA E LOGO
+        // ----------------------------------------------------
+        async function carregarInformacoesClinica() {
+            try {
+                const doc = await db.collection("config").doc("clinicaInfo").get();
+                if (doc.exists) {
+                    clinicaInfo = doc.data();
+                    document.getElementById('clinica-nome').value = clinicaInfo.nome || '';
+                    document.getElementById('clinica-endereco1').value = clinicaInfo.endereco1 || '';
+                    document.getElementById('clinica-endereco2').value = clinicaInfo.endereco2 || '';
+                    document.getElementById('clinica-telefone').value = clinicaInfo.telefone || '';
+                    document.getElementById('clinica-whatsapp').value = clinicaInfo.whatsapp || '';
+                }
+            } catch (e) {
+                console.error("Erro ao carregar informações da clínica:", e);
+            }
+        }
+
+        async function salvarInformacoesClinica() {
+            clinicaInfo.nome = document.getElementById('clinica-nome').value.trim();
+            clinicaInfo.endereco1 = document.getElementById('clinica-endereco1').value.trim();
+            clinicaInfo.endereco2 = document.getElementById('clinica-endereco2').value.trim();
+            clinicaInfo.telefone = document.getElementById('clinica-telefone').value.trim();
+            clinicaInfo.whatsapp = document.getElementById('clinica-whatsapp').value.trim();
+            try {
+                await db.collection("config").doc("clinicaInfo").set(clinicaInfo);
+                alert('Informações da clínica salvas!');
+            } catch (e) {
+                console.error("Erro ao salvar informações da clínica:", e);
+                alert('Erro ao salvar informações.');
+            }
+        }
+
+        async function carregarPreviewLogo() {
+            try {
+                const doc = await db.collection("config").doc("logo").get();
+                if (doc.exists) {
+                    logoPersonalizado = doc.data().url || null;
+                }
+            } catch (e) {
+                console.error("Erro ao carregar logo:", e);
+            }
+            const preview = document.getElementById('preview-logo');
+            if (logoPersonalizado) {
+                preview.innerHTML = `<img src="${logoPersonalizado}" alt="Logo Personalizado" class="max-w-full max-h-28 object-contain">`;
+            } else {
+                preview.innerHTML = '<p class="text-gray-500">Nenhum logo personalizado carregado</p>';
+            }
+        }
+
+        async function carregarLogoUrl() {
+            const url = document.getElementById('logo-url-input').value.trim();
+            if (!url) {
+                alert('Por favor, insira uma URL válida.');
+                return;
+            }
+            try {
+                await db.collection("config").doc("logo").set({ url });
+                logoPersonalizado = url;
+                carregarPreviewLogo();
+                alert('Logo salvo com sucesso!');
+            } catch (e) {
+                console.error("Erro ao salvar URL do logo:", e);
+                alert('Erro ao salvar o logo.');
+            }
+        }
+
+        async function removerLogo() {
+            if (confirm('Tem certeza que deseja remover o logo?')) {
+                try {
+                    await db.collection("config").doc("logo").delete();
+                    logoPersonalizado = null;
+                    carregarPreviewLogo();
+                    alert('Logo removido!');
+                } catch (e) {
+                    console.error("Erro ao remover logo:", e);
+                    alert('Erro ao remover o logo.');
+                }
+            }
+        }
+    
+        // ----------------------------------------------------
+        // OUTRAS FUNÇÕES
+        // ----------------------------------------------------
+    
+        function adicionarApresentacao() {
+            const tipo = document.getElementById('tipo-apresentacao-select').value;
+            const apresentacao = document.getElementById('apresentacao-select').value;
+            const qsp = document.getElementById('qsp-input').value;
+            if (!tipo || !apresentacao) {
+                alert('Selecione o tipo e a apresentação.');
+                return;
+            }
+            apresentacaoGeral = { tipo, apresentacao, qsp };
+            alert('Apresentação adicionada!');
+        }
+    
+        function imprimirReceita() {
+            const nomePaciente = document.getElementById('paciente-nome').value.trim();
+            if (!nomePaciente) {
+                alert('Informe o nome do paciente para imprimir.');
+                return;
+            }
+            const dataReceita = document.getElementById('data-receita').value;
+            const validade = document.getElementById('validade-receita').value;
+            const via = document.getElementById('via-administracao').value;
+            const observacoes = document.getElementById('observacoes-receita').value;
+            const medicoNome = document.getElementById('medico-nome').value;
+            const medicoCrm = document.getElementById('medico-crm').value;
+
+            // Formatação da data
+            const [year, month, day] = dataReceita.split('-');
+            const dataFormatada = `${day}/${month}/${year}`;
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Receita Médica - ${nomePaciente}</title>
+                    <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+                        body { font-family: 'Inter', sans-serif; margin: 0; padding: 1.5cm; line-height: 1.5; color: #1F2937; }
+                        @page { size: A4; margin: 1cm 2cm; }
+                        .header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; border-bottom: 2px solid #333; margin-bottom: 20px; }
+                        .header h1 { font-size: 1.5rem; font-weight: bold; margin: 0; color: rgb(1, 52, 37); }
+                        .header p { margin: 0; font-size: 0.75rem; color: #6B7281; }
+                        .section-title { font-size: 1.25rem; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; }
+                        .prescription-list { list-style: none; padding: 0; margin-bottom: 20px; }
+                        .prescription-list li { margin-bottom: 10px; font-size: 1rem; }
+                        .footer { position: fixed; bottom: 3cm; left: 0; right: 0; text-align: center; }
+                        .signature-line { height: 1px; background-color: #333; width: 250px; margin: 20px auto 5px; }
+                        .medication-item { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; }
+                        .medication-name { font-weight: bold; }
+                        .medication-dose { text-align: right; }
+                        .spacer { margin-left: 20px; }
+                        .signature-line-above { border-top: 1px solid #333; margin-bottom: 5px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        ${logoPersonalizado ? `<img src="${logoPersonalizado}" alt="Logo da Clínica" style="max-height: 100px; max-width: 250px;">` : `<div></div>`}
+                        <div style="text-align: right;">
+                            <h1 style="color: rgb(1, 52, 37); font-weight: bold;">${clinicaInfo.nome || 'Nome da Clínica'}</h1>
+                            <p>${clinicaInfo.endereco1 || 'Endereço 1'}</p>
+                            <p>${clinicaInfo.endereco2 || 'Endereço 2'}</p>
+                            <p>Tel: ${clinicaInfo.telefone || 'Telefone'} | WhatsApp: ${clinicaInfo.whatsapp || 'WhatsApp'}</p>
+                        </div>
+                    </div>
+                    <div style="text-align: right; margin-bottom: 20px;">
+                        <p style="margin: 0;"><strong>Data:</strong> ${dataFormatada} | <strong>Validade:</strong> ${validade}</p>
+                    </div>
+                    <p style="margin: 0 0 20px;"><strong>Paciente:</strong> ${nomePaciente}</p>
+                    <h3 class="section-title">PRESCRIÇÃO</h3>
+                    <p style="font-style: italic; font-size: 0.9rem; margin-bottom: 1rem; font-weight: normal;">${via}</p>
+                    <ul class="prescription-list" style="line-height: 1.5;">
+                        ${medicamentosSelecionados.map(med => `<li>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                                <span style="font-weight: normal; font-size: 1rem;">${med.nome}</span>
+                                <span style="font-weight: normal; font-size: 1rem;">${med.dosagem} ${med.unidade}</span>
+                            </div>
+                        </li>`).join('')}
+                        ${apresentacaoGeral ? `<li><br><span style="font-weight: normal;">${apresentacaoGeral.tipo}: ${apresentacaoGeral.qsp || ''} ${apresentacaoGeral.apresentacao}</span></li>` : ''}
+                    </ul>
+                    <h3 class="section-title">OBS</h3>
+                    <p style="font-weight: normal;">${observacoes.replace(/\n/g, '<br>')}</p>
+                    <div class="footer">
+                        <div style="height: 1px; background-color: #333; width: calc(2 * ${medicoNome.length}ch + 100px); margin: 20px auto 5px;"></div>
+                        <p>${medicoNome}</p>
+                        <p>CRM: ${medicoCrm}</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            showSection('nova-receita', document.querySelector('.nav-btn'));
+            carregarMedicamentos();
+            carregarObservacoes();
+            carregarMedicos();
+            carregarModelosReceitas();
+            carregarInformacoesClinica();
+            carregarPreviewLogo();
+            document.getElementById('data-receita').value = new Date().toISOString().split('T')[0];
+        });
+    </script>
+</body>
+</html>
