@@ -28,6 +28,14 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .capitalize-words { text-transform: capitalize; }
         
+        /* Estilos para fixar a barra lateral e o cabeçalho */
+        .fixed-sidebar { position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; }
+        .main-content { margin-left: 16rem; /* Largura da sidebar */ height: 100vh; display: flex; flex-direction: column; }
+        .main-header { position: sticky; top: 0; z-index: 20; }
+        /* Estilo dos botões no formulário principal */
+        .main-form-buttons button { color: white; font-weight: 600; }
+        .main-form-buttons .bg-gray-300 { color: #1f2937; }
+        
         @media print {
             body { margin: 0; }
             body * { visibility: hidden; }
@@ -54,7 +62,7 @@
 
 <body class="flex min-h-screen bg-gray-100">
 
-    <aside class="w-64 bg-verde-profundo text-white flex flex-col justify-between py-6 px-4">
+    <aside class="w-64 bg-verde-profundo text-white flex flex-col justify-between py-6 px-4 fixed-sidebar">
         <div>
             <div class="flex items-center mb-8">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c5a365" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-microscope"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22V4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v18"/><path d="M14 11h.5a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H14c-1.1 0-2-.9-2-2v-3c0-1.1.9-2 2-2Z"/><path d="M10 11H9.5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2H10c1.1 0 2-.9 2-2v-3c0-1.1-.9-2-2-2Z"/><path d="M12 2v10"/></svg>
@@ -102,9 +110,9 @@
         </div>
     </aside>
 
-    <main class="flex-1 overflow-auto bg-gray-100">
-        <header class="bg-verde-profundo text-white p-6 sticky top-0 z-10">
-            <h2 id="page-title" class="text-xl font-semibold"></h2>
+    <main class="flex-1 overflow-y-auto bg-gray-100 main-content">
+        <header class="bg-gray-300 text-gray-900 p-6 main-header">
+            <h2 id="page-title" class="text-xl font-bold"></h2>
         </header>
 
         <div class="p-6">
@@ -163,7 +171,7 @@
                                 </select>
                             </div>
                         </div>
-                        <button onclick="adicionarMedicamentoFormulario()" class="bg-dourado text-verde-profundo font-semibold py-2 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200 text-sm mb-4">
+                        <button onclick="adicionarMedicamentoFormulario()" class="bg-dourado text-white font-semibold py-2 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200 text-sm mb-4">
                             + Adicionar à Receita
                         </button>
                         <div id="medicamentos-selecionados" class="space-y-3"></div>
@@ -196,7 +204,7 @@
                                 </select>
                             </div>
                         </div>
-                        <button onclick="adicionarApresentacao()" class="bg-dourado text-verde-profundo font-semibold py-2 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200 text-sm">
+                        <button onclick="adicionarApresentacao()" class="bg-dourado text-white font-semibold py-2 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200 text-sm">
                             + Adicionar Apresentação
                         </button>
                     </div>
@@ -204,7 +212,7 @@
                     <div class="p-6 border border-gray-200 rounded-lg mb-6">
                         <h4 class="text-lg font-bold text-gray-900 mb-4">Observações</h4>
                         <textarea id="observacoes-receita" placeholder="Instruções gerais, recomendações..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors h-24 resize-none mb-4"></textarea>
-                        <button onclick="abrirModalObservacoes()" class="bg-dourado text-verde-profundo font-semibold py-2 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200 text-sm">
+                        <button onclick="abrirModalObservacoes()" class="bg-dourado text-white font-semibold py-2 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200 text-sm">
                             + Adicionar Observação
                         </button>
                     </div>
@@ -220,11 +228,11 @@
                         </div>
                     </div>
 
-                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-                        <button onclick="salvarReceita()" class="flex-1 bg-verde-profundo text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 main-form-buttons">
+                        <button onclick="salvarReceita()" class="flex-1 bg-verde-profundo py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-200">
                             Salvar Receita
                         </button>
-                        <button onclick="salvarComoModelo()" class="flex-1 bg-dourado text-verde-profundo font-semibold py-3 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200">
+                        <button onclick="salvarComoModelo()" class="flex-1 bg-dourado py-3 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200">
                             💾 Salvar como Modelo
                         </button>
                         <button onclick="limparFormulario()" class="flex-1 bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg hover:bg-gray-400 transition-colors duration-200">
@@ -235,12 +243,12 @@
             </div>
 
             <div id="gerenciar-medicamentos" class="section hidden fade-in">
-                <div class="card">
+                <div class="card max-w-4xl mx-auto">
                     <div class="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
                         <h2 class="text-xl font-semibold text-gray-900">Gerenciar Medicamentos</h2>
                         <div class="flex space-x-3">
                             <input type="text" id="busca-medicamentos" placeholder="Buscar medicamentos..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors" onkeyup="buscarMedicamentos()">
-                            <button onclick="abrirModalImportarExcel()" class="bg-dourado text-verde-profundo px-4 py-2 rounded-lg hover:bg-dourado-darker transition-colors">
+                            <button onclick="abrirModalImportarExcel()" class="bg-dourado text-white px-4 py-2 rounded-lg hover:bg-dourado-darker transition-colors">
                                 📊 Importar Excel
                             </button>
                             <button onclick="abrirModalNovoMedicamento()" class="bg-verde-profundo text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
@@ -253,7 +261,7 @@
             </div>
             
             <div id="gerenciar-observacoes" class="section hidden fade-in">
-                <div class="card">
+                <div class="card max-w-4xl mx-auto">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-xl font-semibold text-gray-900">Gerenciar Observações</h2>
                         <button onclick="abrirModalNovaObservacao()" class="bg-verde-profundo text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
@@ -265,7 +273,7 @@
             </div>
             
             <div id="gerenciar-medicos" class="section hidden fade-in">
-                <div class="card">
+                <div class="card max-w-4xl mx-auto">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-xl font-semibold text-gray-900">Gerenciar Médicos</h2>
                         <button onclick="abrirModalNovoMedico()" class="bg-verde-profundo text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
@@ -277,7 +285,7 @@
             </div>
             
             <div id="modelos-receitas" class="section hidden fade-in">
-                <div class="card">
+                <div class="card max-w-4xl mx-auto">
                     <h2 class="text-xl font-semibold text-gray-900 mb-6">Modelos de Receitas</h2>
                     <input type="text" id="busca-modelos" placeholder="Buscar modelos..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors" onkeyup="buscarModelos()">
                     <div id="lista-modelos" class="space-y-3"></div>
@@ -285,7 +293,7 @@
             </div>
 
             <div id="gerenciar-logo" class="section hidden fade-in">
-                <div class="card">
+                <div class="card max-w-4xl mx-auto">
                     <h2 class="text-xl font-semibold text-gray-900 mb-6">Configurações da Clínica e Logo</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="border border-gray-200 rounded-lg p-6">
@@ -320,8 +328,8 @@
                             <h3 class="text-lg font-medium text-gray-800 mb-4">Logo por URL</h3>
                             <div class="space-y-4">
                                 <p class="text-gray-600">Cole a URL de sua imagem de logo (PNG, JPG, SVG).</p>
-                                <input type="text" id="logo-url-input" placeholder="http://exemplo.com/seu-logo.png" value="https://i.ibb.co/L8y2vY6/logo-tricomaster.png" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado">
-                                <button onclick="carregarLogoUrl()" class="w-full bg-dourado text-verde-profundo py-3 rounded-lg hover:bg-dourado-darker transition-colors font-medium">
+                                <input type="text" id="logo-url-input" placeholder="http://exemplo.com/seu-logo.png" value="https://i.imgur.com/V4hVr7p.jpeg" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado">
+                                <button onclick="carregarLogoUrl()" class="w-full bg-dourado text-white py-3 rounded-lg hover:bg-dourado-darker transition-colors font-medium">
                                     Salvar Logo
                                 </button>
                             </div>
@@ -340,7 +348,7 @@
             </div>
 
             <div id="backup" class="section hidden fade-in">
-                <div class="card">
+                <div class="card max-w-4xl mx-auto">
                     <h2 class="text-xl font-semibold text-gray-900 mb-6">Backup e Restauração</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="border border-gray-200 rounded-lg p-6">
@@ -354,7 +362,7 @@
                             <h3 class="text-lg font-medium text-gray-800 mb-4">Restaurar Backup</h3>
                             <p class="text-gray-600 mb-4">Carregue um arquivo JSON para restaurar os dados.</p>
                             <input type="file" id="arquivo-backup" accept=".json" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-lg">
-                            <button onclick="restaurarBackup()" class="w-full bg-dourado text-verde-profundo py-3 rounded-lg hover:bg-dourado-darker transition-colors font-medium">
+                            <button onclick="restaurarBackup()" class="w-full bg-dourado text-white py-3 rounded-lg hover:bg-dourado-darker transition-colors font-medium">
                                 📤 Restaurar Backup
                             </button>
                         </div>
@@ -393,7 +401,7 @@
                 <label for="primeira-linha-cabecalho" class="text-sm text-gray-700">Primeira linha é cabeçalho</label>
             </div>
             <div class="flex space-x-3 mt-6">
-                <button onclick="importarMedicamentosExcel()" class="flex-1 bg-dourado text-verde-profundo py-2 rounded-lg hover:bg-dourado-darker transition-colors">Importar</button>
+                <button onclick="importarMedicamentosExcel()" class="flex-1 bg-dourado text-white py-2 rounded-lg hover:bg-dourado-darker transition-colors">Importar</button>
                 <button onclick="fecharModalImportarExcel()" class="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors">Cancelar</button>
             </div>
         </div>
@@ -970,7 +978,7 @@
                 fecharModalNovoMedico();
                 carregarMedicos();
             } catch (e) {
-                console.error("Erro:", e);
+                console.error("Erro ao atualizar:", e);
                 alert('Erro ao atualizar.');
             }
         }
@@ -1286,7 +1294,15 @@
                     <title>Receita Médica - ${nomePaciente}</title>
                     <style>
                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-                        body { font-family: 'Inter', sans-serif; margin: 0; padding: 1.5cm; line-height: 1.5; color: #1F2937; position: relative; }
+                        body {
+                            font-family: 'Inter', sans-serif;
+                            margin: 0;
+                            padding: 1.5cm;
+                            line-height: 1.5;
+                            color: #1F2937;
+                            min-height: 29.7cm; /* Altura de uma página A4 */
+                            box-sizing: border-box;
+                        }
                         @page { size: A4; margin: 1cm 2cm; }
                         .header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; border-bottom: 2px solid #333; margin-bottom: 20px; }
                         .header h1 { font-size: 1.5rem; font-weight: bold; margin: 0; color: rgb(1, 52, 37); }
@@ -1294,24 +1310,7 @@
                         .section-title { font-size: 1.25rem; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; }
                         .prescription-list { list-style: none; padding: 0; margin-bottom: 20px; }
                         .prescription-list li { margin-bottom: 10px; font-size: 1rem; }
-                        .footer { position: fixed; bottom: 3cm; left: 0; right: 0; text-align: center; }
-                        .signature-line { height: 1px; background-color: #333; width: 250px; margin: 20px auto 5px; }
-                        .medication-item { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; }
-                        .medication-name { font-weight: bold; }
-                        .medication-dose { text-align: right; }
-                        .spacer { margin-left: 20px; }
-                        .signature-line-above { border-top: 1px solid #333; margin-bottom: 5px; }
-                        .signature-container {
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            position: fixed;
-                            bottom: 2cm; /* Fica a 2cm do final da página */
-                            left: 50%;
-                            transform: translateX(-50%);
-                            text-align: center;
-                            width: 100%;
-                        }
+                        .medication-item-print { display: flex; justify-content: space-between; font-weight: normal; gap: 20px; }
                         .medication-info {
                             display: flex;
                             flex-direction: column;
@@ -1323,48 +1322,69 @@
                             display: flex;
                             justify-content: space-between;
                         }
-
+                        .signature-container {
+                            position: fixed;
+                            bottom: 2cm; /* Fica a 2cm do final da página */
+                            left: 50%;
+                            transform: translateX(-50%);
+                            text-align: center;
+                            width: 100%;
+                            page-break-inside: avoid;
+                        }
+                        .signature-line {
+                            height: 1px;
+                            background-color: #333;
+                            margin-bottom: 5px;
+                        }
+                        .content-wrapper {
+                            padding-bottom: 4cm; /* Garante que o conteúdo não se sobreponha à assinatura */
+                        }
                         @media print {
-                            body {
-                                margin: 0;
-                            }
                             .signature-container {
-                                page-break-after: always;
+                                display: block;
+                            }
+                            @page {
+                                margin: 1cm 2cm;
+                            }
+                            body {
+                                min-height: 0;
                             }
                         }
                     </style>
                 </head>
                 <body>
-                    <div class="header">
-                        ${logoPersonalizado ? `<img src="${logoPersonalizado}" alt="Logo da Clínica" style="max-height: 100px; max-width: 250px;">` : `<div></div>`}
-                        <div style="text-align: right;">
-                            <h1 style="color: rgb(1, 52, 37); font-weight: bold;">${clinicaInfo.nome || 'Nome da Clínica'}</h1>
-                            <p>${clinicaInfo.endereco1 || 'Endereço 1'}</p>
-                            <p>${clinicaInfo.endereco2 || 'Endereço 2'}</p>
-                            <p>Tel: ${clinicaInfo.telefone || 'Telefone'} | WhatsApp: ${clinicaInfo.whatsapp || 'WhatsApp'}</p>
-                        </div>
-                    </div>
-                    <div style="text-align: right; margin-bottom: 20px;">
-                        <p style="margin: 0;"><strong>Data:</strong> ${dataFormatada} | <strong>Validade:</strong> ${validade}</p>
-                    </div>
-                    <p style="margin: 0 0 20px;"><strong>Paciente:</strong> ${nomePaciente}</p>
-                    <h3 class="section-title">PRESCRIÇÃO</h3>
-                    <p style="font-style: italic; font-size: 0.9rem; margin-bottom: 1rem; font-weight: normal;">${via}</p>
-                    <div class="medication-item-container">
-                        ${medicamentosSelecionados.map(med => `
-                            <div class="medication-info">
-                                <div class="medication-info-line">
-                                    <span style="font-weight: normal; font-size: 1rem;">${med.nome}</span>
-                                    <span style="font-weight: normal; font-size: 1rem;">${med.dosagem} ${med.unidade}</span>
-                                </div>
+                    <div class="content-wrapper">
+                        <div class="header">
+                            ${logoPersonalizado ? `<img src="${logoPersonalizado}" alt="Logo da Clínica" style="max-height: 100px; max-width: 250px;">` : `<div></div>`}
+                            <div style="text-align: right;">
+                                <h1 style="color: rgb(1, 52, 37); font-weight: bold;">${clinicaInfo.nome || 'Nome da Clínica'}</h1>
+                                <p>${clinicaInfo.endereco1 || 'Endereço 1'}</p>
+                                <p>${clinicaInfo.endereco2 || 'Endereço 2'}</p>
+                                <p>Tel: ${clinicaInfo.telefone || 'Telefone'} | WhatsApp: ${clinicaInfo.whatsapp || 'WhatsApp'}</p>
                             </div>
-                        `).join('')}
+                        </div>
+                        <div style="text-align: right; margin-bottom: 20px;">
+                            <p style="margin: 0;"><strong>Data:</strong> ${dataFormatada} | <strong>Validade:</strong> ${validade}</p>
+                        </div>
+                        <p style="margin: 0 0 20px;"><strong>Paciente:</strong> ${nomePaciente}</p>
+                        <h3 class="section-title">PRESCRIÇÃO</h3>
+                        <p style="font-style: italic; font-size: 0.9rem; margin-bottom: 1rem; font-weight: normal;">${via}</p>
+                        <div class="medication-item-container">
+                            ${medicamentosSelecionados.map(med => `
+                                <div class="medication-info">
+                                    <div class="medication-info-line">
+                                        <span style="font-weight: normal; font-size: 1rem;">${med.nome}</span>
+                                        <span style="font-weight: normal; font-size: 1rem;">${med.dosagem} ${med.unidade}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${apresentacaoGeral ? `<p style="font-weight: normal; font-size: 1rem; margin-top: 20px;">${apresentacaoGeral.tipo}: ${apresentacaoGeral.qsp || ''} ${apresentacaoGeral.apresentacao}</p>` : ''}
+                        <h3 class="section-title" style="margin-top: 40px;">OBS</h3>
+                        <p style="font-weight: normal;">${observacoes.replace(/\n/g, '<br>')}</p>
                     </div>
-                    ${apresentacaoGeral ? `<p style="font-weight: normal; font-size: 1rem; margin-top: 20px;">${apresentacaoGeral.tipo}: ${apresentacaoGeral.qsp || ''} ${apresentacaoGeral.apresentacao}</p>` : ''}
-                    <h3 class="section-title" style="margin-top: 40px;">OBS</h3>
-                    <p style="font-weight: normal;">${observacoes.replace(/\n/g, '<br>')}</p>
                     <div class="signature-container">
-                        <div style="height: 1px; background-color: #333; width: calc(2 * ${medicoNome.length}ch + 50px); margin-bottom: 5px;"></div>
+                        <div class="signature-line" style="width: calc(2 * ${medicoNome.length}ch + 50px);"></div>
                         <p style="font-weight: normal; margin: 0;">${medicoNome}</p>
                         <p style="margin: 0;">CRM: ${medicoCrm}</p>
                     </div>
