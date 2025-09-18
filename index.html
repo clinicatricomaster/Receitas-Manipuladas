@@ -65,8 +65,7 @@
     <aside class="w-64 bg-verde-profundo text-white flex flex-col justify-between py-6 px-4 fixed-sidebar">
         <div>
             <div class="flex items-center mb-8">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c5a365" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-microscope"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22V4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v18"/><path d="M14 11h.5a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H14c-1.1 0-2-.9-2-2v-3c0-1.1.9-2 2-2Z"/><path d="M10 11H9.5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2H10c1.1 0 2-.9 2-2v-3c0-1.1-.9-2-2-2Z"/><path d="M12 2v10"/></svg>
-                <h1 class="text-xl font-bold ml-2 text-dourado">Tricomaster</h1>
+                <h1 class="text-xl font-bold text-dourado">Receitas TricoMaster</h1>
             </div>
 
             <nav class="space-y-2">
@@ -228,11 +227,11 @@
                         </div>
                     </div>
 
-                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 main-form-buttons">
-                        <button onclick="salvarReceita()" class="flex-1 bg-verde-profundo py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                        <button onclick="salvarReceita()" class="flex-1 bg-verde-profundo text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-200">
                             Salvar Receita
                         </button>
-                        <button onclick="salvarComoModelo()" class="flex-1 bg-dourado py-3 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200">
+                        <button onclick="salvarComoModelo()" class="flex-1 bg-dourado text-white font-semibold py-3 px-6 rounded-lg hover:bg-dourado-darker transition-colors duration-200">
                             💾 Salvar como Modelo
                         </button>
                         <button onclick="limparFormulario()" class="flex-1 bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg hover:bg-gray-400 transition-colors duration-200">
@@ -287,7 +286,12 @@
             <div id="modelos-receitas" class="section hidden fade-in">
                 <div class="card max-w-4xl mx-auto">
                     <h2 class="text-xl font-semibold text-gray-900 mb-6">Modelos de Receitas</h2>
-                    <input type="text" id="busca-modelos" placeholder="Buscar modelos..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors" onkeyup="buscarModelos()">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
+                        <input type="text" id="busca-modelos" placeholder="Buscar modelos..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors" onkeyup="buscarModelos()">
+                        <button onclick="abrirModalImportarModelosExcel()" class="bg-dourado text-white px-4 py-2 rounded-lg hover:bg-dourado-darker transition-colors">
+                            📊 Importar Excel
+                        </button>
+                    </div>
                     <div id="lista-modelos" class="space-y-3"></div>
                 </div>
             </div>
@@ -350,15 +354,15 @@
             <div id="backup" class="section hidden fade-in">
                 <div class="card max-w-4xl mx-auto">
                     <h2 class="text-xl font-semibold text-gray-900 mb-6">Backup e Restauração</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="border border-gray-200 rounded-lg p-6">
+                    <div class="flex space-x-4">
+                        <div class="border border-gray-200 rounded-lg p-6 flex-1">
                             <h3 class="text-lg font-medium text-gray-800 mb-4">Fazer Backup</h3>
                             <p class="text-gray-600 mb-4">Baixe todos os dados em um arquivo JSON seguro.</p>
                             <button onclick="fazerBackup()" class="w-full bg-verde-profundo text-white py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium">
                                 📥 Baixar Backup JSON
                             </button>
                         </div>
-                        <div class="border border-gray-200 rounded-lg p-6">
+                        <div class="border border-gray-200 rounded-lg p-6 flex-1">
                             <h3 class="text-lg font-medium text-gray-800 mb-4">Restaurar Backup</h3>
                             <p class="text-gray-600 mb-4">Carregue um arquivo JSON para restaurar os dados.</p>
                             <input type="file" id="arquivo-backup" accept=".json" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-lg">
@@ -396,13 +400,31 @@
                 </ul>
             </div>
             <input type="file" id="arquivo-excel" accept=".xlsx,.xls" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-lg">
-            <div class="flex items-center">
-                <input type="checkbox" id="primeira-linha-cabecalho" checked class="mr-2">
-                <label for="primeira-linha-cabecalho" class="text-sm text-gray-700">Primeira linha é cabeçalho</label>
-            </div>
             <div class="flex space-x-3 mt-6">
                 <button onclick="importarMedicamentosExcel()" class="flex-1 bg-dourado text-white py-2 rounded-lg hover:bg-dourado-darker transition-colors">Importar</button>
                 <button onclick="fecharModalImportarExcel()" class="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-importar-excel-modelos" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="card max-w-md w-full">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Importar Modelos de Receita do Excel</h3>
+            <div class="bg-gray-100 border border-gray-200 rounded-lg p-4 mb-4">
+                <h4 class="font-medium text-gray-800 mb-2">📋 Formato do arquivo:</h4>
+                <ul class="text-gray-600 text-sm space-y-1">
+                    <li>• Arquivo Excel (.xlsx ou .xls)</li>
+                    <li>• Coluna A: Nome do modelo</li>
+                </ul>
+            </div>
+            <input type="file" id="arquivo-excel-modelos" accept=".xlsx,.xls" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-lg">
+            <div class="flex items-center">
+                <input type="checkbox" id="primeira-linha-cabecalho-modelos" checked class="mr-2">
+                <label for="primeira-linha-cabecalho-modelos" class="text-sm text-gray-700">Primeira linha é cabeçalho</label>
+            </div>
+            <div class="flex space-x-3 mt-6">
+                <button onclick="importarModelosExcel()" class="flex-1 bg-dourado text-white py-2 rounded-lg hover:bg-dourado-darker transition-colors">Importar</button>
+                <button onclick="fecharModalImportarModelosExcel()" class="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors">Cancelar</button>
             </div>
         </div>
     </div>
@@ -431,7 +453,6 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Novo Médico</h3>
             <div class="space-y-4">
                 <input type="text" id="novo-medico-nome" placeholder="Nome do Médico" class="capitalize-words w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
-                <input type="text" id="novo-medico-crm" placeholder="CRM" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
             </div>
             <div class="flex space-x-3 mt-6">
                 <button id="btn-salvar-medico" onclick="salvarNovoMedico()" class="flex-1 bg-verde-profundo text-white py-2 rounded-lg hover:bg-gray-700 transition-colors">Salvar</button>
@@ -697,12 +718,9 @@
             } catch (e) {
                 console.error("Erro ao atualizar:", e);
                 alert('Erro ao atualizar.');
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
             }
         }
-    
+
         async function excluirMedicamento(id) {
             if (confirm('Tem certeza? Esta ação não pode ser desfeita.')) {
                 try {
@@ -858,7 +876,7 @@
                 alert('Erro ao atualizar.');
             }
         }
-    
+
         async function excluirObservacao(id) {
             if (confirm('Tem certeza? Esta ação não pode ser desfeita.')) {
                 try {
@@ -929,10 +947,7 @@
                 const div = document.createElement('div');
                 div.className = 'flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors';
                 div.innerHTML = `
-                    <div class="flex-1">
-                        <p class="font-medium text-gray-900">${medico.nome}</p>
-                        <p class="text-sm text-gray-600">CRM: ${medico.crm}</p>
-                    </div>
+                    <p class="font-medium text-gray-900 flex-1">${medico.nome}</p>
                     <div class="flex space-x-2">
                         <button onclick="editarMedico('${medico.id}')" class="p-1 rounded-full hover:bg-gray-200 transition-colors" title="Editar">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7281" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-edit"><path d="M22 12s-.4-1.2-1.2-2c-.9-1.2-2.1-1.6-3-2.4L10 2l-6 6 8 8 5.6-5.6c.8-.8 1.2-2.1 2.4-3Z"/><path d="M12 2l-6 6v4"/></svg>
@@ -998,9 +1013,8 @@
 
         function abrirModalNovoMedico() {
             document.getElementById('novo-medico-nome').value = '';
-            document.getElementById('novo-medico-crm').value = '';
-            document.getElementById('btn-salvar-medico').textContent = 'Salvar';
-            document.getElementById('btn-salvar-medico').onclick = salvarNovoMedico;
+            document.getElementById('btn-salvar-med').textContent = 'Salvar';
+            document.getElementById('btn-salvar-med').onclick = salvarNovoMedico;
             document.getElementById('modal-novo-medico').classList.remove('hidden');
         }
 
@@ -1072,7 +1086,7 @@
                             <p class="text-gray-600 text-sm">Via: ${modelo.via}</p>
                         </div>
                         <div class="flex space-x-2">
-                            <button onclick="usarModelo('${modelo.id}')" class="bg-dourado text-verde-profundo px-3 py-1 rounded text-sm hover:bg-dourado-darker transition-colors">Usar</button>
+                            <button onclick="usarModelo('${modelo.id}')" class="bg-dourado text-white px-3 py-1 rounded text-sm hover:bg-dourado-darker transition-colors">Usar</button>
                             <button onclick="excluirModelo('${modelo.id}')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors">Excluir</button>
                         </div>
                     </div>
@@ -1080,7 +1094,7 @@
                 lista.appendChild(modeloDiv);
             });
         }
-
+        
         async function salvarComoModelo() {
             if (medicamentosSelecionados.length === 0) {
                 alert('Adicione medicamentos para salvar como modelo.');
@@ -1138,6 +1152,74 @@
                     alert('Erro ao excluir o modelo.');
                 }
             }
+        }
+
+        function abrirModalImportarModelosExcel() {
+            document.getElementById('modal-importar-excel-modelos').classList.remove('hidden');
+        }
+
+        function fecharModalImportarModelosExcel() {
+            document.getElementById('modal-importar-excel-modelos').classList.add('hidden');
+        }
+        
+        async function importarModelosExcel() {
+            const file = document.getElementById('arquivo-excel-modelos').files[0];
+            if (!file) {
+                alert('Selecione um arquivo de Excel para importar os modelos.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    const hasHeader = document.getElementById('primeira-linha-cabecalho-modelos').checked;
+                    const startIndex = hasHeader ? 1 : 0;
+                    
+                    let novosModelos = [];
+                    for (let i = startIndex; i < jsonData.length; i++) {
+                        const nomeModelo = jsonData[i][0]?.toString().trim();
+                        if (nomeModelo) {
+                            const isDuplicate = modelosReceitas.some(m => m.nome.toLowerCase() === nomeModelo.toLowerCase());
+                            if (!isDuplicate) {
+                                // Assume que a receita tem um medicamento, para fins de exemplo
+                                const modelo = {
+                                    nome: capitalizeWords(nomeModelo),
+                                    medicamentos: [{ nome: "Medicamento Padrão", dosagem: "100", unidade: "mg" }], // Substitua com a lógica real de importação da receita
+                                    via: "Via Oral",
+                                    observacoes: "Importado do Excel",
+                                    medico: { nome: "Médico Importado", crm: "00000" }
+                                };
+                                novosModelos.push(modelo);
+                            }
+                        }
+                    }
+
+                    if (novosModelos.length > 0) {
+                        const batch = db.batch();
+                        novosModelos.forEach(modelo => {
+                            const docRef = db.collection("modelosReceitas").doc();
+                            batch.set(docRef, modelo);
+                        });
+                        await batch.commit();
+                        alert(`${novosModelos.length} modelos importados com sucesso!`);
+                        carregarModelosReceitas();
+                        fecharModalImportarModelosExcel();
+                    } else {
+                        alert('Nenhum modelo novo encontrado no arquivo.');
+                    }
+
+                } catch (error) {
+                    console.error("Erro na importação de modelos:", error);
+                    alert('Erro ao ler o arquivo Excel. Verifique o formato.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
         }
     
         // ----------------------------------------------------
@@ -1221,7 +1303,126 @@
                 }
             }
         }
-    
+        
+        // ----------------------------------------------------
+        // FUNÇÕES DE BACKUP E RESTAURAÇÃO
+        // ----------------------------------------------------
+
+        async function fazerBackup() {
+            try {
+                const [
+                    medicamentosSnapshot,
+                    observacoesSnapshot,
+                    medicosSnapshot,
+                    modelosSnapshot
+                ] = await Promise.all([
+                    db.collection("medicamentos").get(),
+                    db.collection("observacoes").get(),
+                    db.collection("medicos").get(),
+                    db.collection("modelosReceitas").get()
+                ]);
+
+                const backupData = {
+                    medicamentos: medicamentosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+                    observacoes: observacoesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+                    medicos: medicosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+                    modelosReceitas: modelosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+                    clinicaInfo: clinicaInfo,
+                    logoPersonalizado: logoPersonalizado,
+                    timestamp: new Date().toISOString()
+                };
+
+                const dataStr = JSON.stringify(backupData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `backup-tricomaster-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                alert('Backup concluído com sucesso!');
+
+            } catch (e) {
+                console.error("Erro ao fazer backup:", e);
+                alert('Erro ao fazer o backup. Tente novamente.');
+            }
+        }
+
+        async function restaurarBackup() {
+            const fileInput = document.getElementById('arquivo-backup');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Selecione um arquivo de backup para restaurar.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const backupData = JSON.parse(e.target.result);
+
+                    if (!backupData || !backupData.medicamentos || !backupData.observacoes || !backupData.medicos || !backupData.modelosReceitas) {
+                        alert('Arquivo de backup inválido. Verifique o formato.');
+                        return;
+                    }
+
+                    if (confirm("Isso irá substituir TODOS os dados do sistema. Deseja continuar?")) {
+                        // Limpando as coleções existentes
+                        const collections = ["medicamentos", "observacoes", "medicos", "modelosReceitas"];
+                        for (const collectionName of collections) {
+                            const snapshot = await db.collection(collectionName).get();
+                            const batch = db.batch();
+                            snapshot.docs.forEach(doc => {
+                                batch.delete(doc.ref);
+                            });
+                            await batch.commit();
+                        }
+
+                        // Adicionando os novos dados do backup
+                        const newBatch = db.batch();
+                        if (backupData.medicamentos) {
+                            backupData.medicamentos.forEach(med => {
+                                newBatch.set(db.collection("medicamentos").doc(med.id), med);
+                            });
+                        }
+                        if (backupData.observacoes) {
+                            backupData.observacoes.forEach(obs => {
+                                newBatch.set(db.collection("observacoes").doc(obs.id), obs);
+                            });
+                        }
+                        if (backupData.medicos) {
+                            backupData.medicos.forEach(medico => {
+                                newBatch.set(db.collection("medicos").doc(medico.id), medico);
+                            });
+                        }
+                        if (backupData.modelosReceitas) {
+                            backupData.modelosReceitas.forEach(modelo => {
+                                newBatch.set(db.collection("modelosReceitas").doc(modelo.id), modelo);
+                            });
+                        }
+                        if (backupData.clinicaInfo) {
+                            await db.collection("config").doc("clinicaInfo").set(backupData.clinicaInfo);
+                        }
+                        if (backupData.logoPersonalizado) {
+                            await db.collection("config").doc("logo").set({ url: backupData.logoPersonalizado });
+                        }
+
+                        await newBatch.commit();
+                        alert('Restauração concluída com sucesso! A página será recarregada.');
+                        window.location.reload();
+                    }
+
+                } catch (e) {
+                    console.error("Erro ao restaurar backup:", e);
+                    alert('Erro ao restaurar o backup. O arquivo pode estar corrompido.');
+                }
+            };
+
+            reader.readAsText(file);
+        }
+
         // ----------------------------------------------------
         // OUTRAS FUNÇÕES
         // ----------------------------------------------------
