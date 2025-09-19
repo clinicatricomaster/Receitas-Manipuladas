@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -618,14 +617,16 @@
             });
         }
     
-        function carregarListaMedicamentos() {
+        function carregarListaMedicamentos(filtro = '') {
             const lista = document.getElementById('lista-medicamentos');
             lista.innerHTML = '';
-            if (medicamentos.length === 0) {
-                lista.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhum medicamento cadastrado.</p>';
+            const medicamentosFiltrados = medicamentos.filter(med => med.nome.toLowerCase().includes(filtro.toLowerCase()));
+    
+            if (medicamentosFiltrados.length === 0) {
+                lista.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhum medicamento encontrado.</p>';
                 return;
             }
-            medicamentos.forEach(med => {
+            medicamentosFiltrados.forEach(med => {
                 const div = document.createElement('div');
                 div.className = 'flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors';
                 div.innerHTML = `
@@ -643,6 +644,11 @@
             });
         }
     
+        function buscarMedicamentos() {
+            const termo = document.getElementById('busca-medicamentos').value;
+            carregarListaMedicamentos(termo);
+        }
+
         function adicionarMedicamentoFormulario() {
             const medId = document.getElementById('medicamento-select').value;
             const dosagem = document.getElementById('dosagem-input').value.trim();
@@ -1187,10 +1193,11 @@
                         if (nomeModelo) {
                             const isDuplicate = modelosReceitas.some(m => m.nome.toLowerCase() === nomeModelo.toLowerCase());
                             if (!isDuplicate) {
-                                // Assume que a receita tem um medicamento, para fins de exemplo
+                                // Para este exemplo, a dosagem e apresentação serão padrões.
+                                // A lógica real precisaria de mais colunas para ser completa.
                                 const modelo = {
                                     nome: capitalizeWords(nomeModelo),
-                                    medicamentos: [{ nome: "Medicamento Padrão", dosagem: "100", unidade: "mg" }], // Substitua com a lógica real de importação da receita
+                                    medicamentos: [{ nome: "Medicamento Padrão", dosagem: "100", unidade: "mg" }],
                                     via: "Via Oral",
                                     observacoes: "Importado do Excel",
                                     medico: { nome: "Médico Importado", crm: "00000" }
@@ -1303,11 +1310,10 @@
                 }
             }
         }
-        
+
         // ----------------------------------------------------
         // FUNÇÕES DE BACKUP E RESTAURAÇÃO
         // ----------------------------------------------------
-
         async function fazerBackup() {
             try {
                 const [
