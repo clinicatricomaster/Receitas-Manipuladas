@@ -452,6 +452,7 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Novo Médico</h3>
             <div class="space-y-4">
                 <input type="text" id="novo-medico-nome" placeholder="Nome do Médico" class="capitalize-words w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
+                <input type="text" id="novo-medico-crm" placeholder="CRM" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-dourado focus:border-dourado transition-colors">
             </div>
             <div class="flex space-x-3 mt-6">
                 <button id="btn-salvar-medico" onclick="salvarNovoMedico()" class="flex-1 bg-verde-profundo text-white py-2 rounded-lg hover:bg-gray-700 transition-colors">Salvar</button>
@@ -471,13 +472,13 @@
     <script>
         // Configuração do Firebase
         const firebaseConfig = {
-          apiKey: "AIzaSyC5dU8J88RRetxOI_E2BKHXw6Qz5ouX640",
-          authDomain: "gerenciador-nf-adce4.firebaseapp.com",
-          projectId: "gerenciador-nf-adce4",
-          storageBucket: "gerenciador-nf-adce4.firebasestorage.app",
-          messagingSenderId: "133335508527",
-          appId: "1:133335508527:web:4052debc75ecabcc68c8da"
-        };
+  apiKey: "AIzaSyC5dU8J88RRetxOI_E2BKHXw6Qz5ouX640",
+  authDomain: "gerenciador-nf-adce4.firebaseapp.com",
+  projectId: "gerenciador-nf-adce4",
+  storageBucket: "gerenciador-nf-adce4.firebasestorage.app",
+  messagingSenderId: "133335508527",
+  appId: "1:133335508527:web:4052debc75ecabcc68c8da"
+};
     
         // Inicializa o Firebase e o Firestore
         firebase.initializeApp(firebaseConfig);
@@ -953,7 +954,10 @@
                 const div = document.createElement('div');
                 div.className = 'flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors';
                 div.innerHTML = `
-                    <p class="font-medium text-gray-900 flex-1">${medico.nome}</p>
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-900">${medico.nome}</p>
+                        <p class="text-sm text-gray-600">CRM: ${medico.crm}</p>
+                    </div>
                     <div class="flex space-x-2">
                         <button onclick="editarMedico('${medico.id}')" class="p-1 rounded-full hover:bg-gray-200 transition-colors" title="Editar">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7281" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-edit"><path d="M22 12s-.4-1.2-1.2-2c-.9-1.2-2.1-1.6-3-2.4L10 2l-6 6 8 8 5.6-5.6c.8-.8 1.2-2.1 2.4-3Z"/><path d="M12 2l-6 6v4"/></svg>
@@ -1019,8 +1023,9 @@
 
         function abrirModalNovoMedico() {
             document.getElementById('novo-medico-nome').value = '';
-            document.getElementById('btn-salvar-med').textContent = 'Salvar';
-            document.getElementById('btn-salvar-med').onclick = salvarNovoMedico;
+            document.getElementById('novo-medico-crm').value = ''; // Limpa o campo CRM também
+            document.getElementById('btn-salvar-medico').textContent = 'Salvar';
+            document.getElementById('btn-salvar-medico').onclick = salvarNovoMedico;
             document.getElementById('modal-novo-medico').classList.remove('hidden');
         }
 
@@ -1074,14 +1079,16 @@
             }
         }
 
-        function renderizarModelosReceitas() {
+        function renderizarModelosReceitas(filtro = '') {
             const lista = document.getElementById('lista-modelos');
             lista.innerHTML = '';
-            if (modelosReceitas.length === 0) {
+            const modelosFiltrados = modelosReceitas.filter(modelo => modelo.nome.toLowerCase().includes(filtro.toLowerCase()));
+
+            if (modelosFiltrados.length === 0) {
                 lista.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhum modelo salvo ainda.</p>';
                 return;
             }
-            modelosReceitas.forEach(modelo => {
+            modelosFiltrados.forEach(modelo => {
                 const modeloDiv = document.createElement('div');
                 modeloDiv.className = 'card';
                 modeloDiv.innerHTML = `
@@ -1101,6 +1108,11 @@
             });
         }
         
+        function buscarModelos() {
+            const termo = document.getElementById('busca-modelos').value;
+            renderizarModelosReceitas(termo);
+        }
+
         async function salvarComoModelo() {
             if (medicamentosSelecionados.length === 0) {
                 alert('Adicione medicamentos para salvar como modelo.');
@@ -1310,10 +1322,11 @@
                 }
             }
         }
-
+        
         // ----------------------------------------------------
         // FUNÇÕES DE BACKUP E RESTAURAÇÃO
         // ----------------------------------------------------
+
         async function fazerBackup() {
             try {
                 const [
