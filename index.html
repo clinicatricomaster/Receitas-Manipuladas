@@ -472,13 +472,13 @@
     <script>
         // Configuração do Firebase
         const firebaseConfig = {
-  apiKey: "AIzaSyC5dU8J88RRetxOI_E2BKHXw6Qz5ouX640",
-  authDomain: "gerenciador-nf-adce4.firebaseapp.com",
-  projectId: "gerenciador-nf-adce4",
-  storageBucket: "gerenciador-nf-adce4.firebasestorage.app",
-  messagingSenderId: "133335508527",
-  appId: "1:133335508527:web:4052debc75ecabcc68c8da"
-};
+          apiKey: "AIzaSyC5dU8J88RRetxOI_E2BKHXw6Qz5ouX640",
+          authDomain: "gerenciador-nf-adce4.firebaseapp.com",
+          projectId: "gerenciador-nf-adce4",
+          storageBucket: "gerenciador-nf-adce4.firebasestorage.app",
+          messagingSenderId: "133335508527",
+          appId: "1:133335508527:web:4052debc75ecabcc68c8da"
+        };
     
         // Inicializa o Firebase e o Firestore
         firebase.initializeApp(firebaseConfig);
@@ -676,18 +676,22 @@
     
         async function salvarNovoMedicamento() {
             const nome = document.getElementById('novo-medicamento-nome').value.trim();
-            if (!nome) { alert('Digite o nome.'); return; }
+            const crm = document.getElementById('novo-medicamento-crm').value.trim(); // Captura o CRM
+            if (!nome || !crm) {
+                alert('Preencha todos os campos.');
+                return;
+            }
     
-            const btn = document.getElementById('btn-salvar-med');
+            const btn = document.getElementById('btn-salvar-medico');
             const originalText = btn.textContent;
             btn.textContent = 'Salvando...';
             btn.disabled = true;
     
             try {
-                await db.collection("medicamentos").add({ nome: capitalizeWords(nome) });
-                alert('Medicamento salvo com sucesso!');
-                fecharModalNovoMedicamento();
-                carregarMedicamentos();
+                await db.collection("medicos").add({ nome: capitalizeWords(nome), crm: crm }); // Salva o nome e o CRM
+                alert('Médico salvo com sucesso!');
+                fecharModalNovoMedico();
+                carregarMedicos();
             } catch (e) {
                 console.error("Erro ao salvar:", e);
                 alert('Erro ao salvar.');
@@ -725,6 +729,9 @@
             } catch (e) {
                 console.error("Erro ao atualizar:", e);
                 alert('Erro ao atualizar.');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
             }
         }
 
@@ -986,6 +993,7 @@
         async function editarMedico(id) {
             const medico = medicos.find(m => m.id === id);
             if (!medico) return;
+    
             document.getElementById('novo-medico-nome').value = medico.nome;
             document.getElementById('novo-medico-crm').value = medico.crm;
             document.getElementById('btn-salvar-medico').textContent = 'Atualizar';
@@ -1023,7 +1031,7 @@
 
         function abrirModalNovoMedico() {
             document.getElementById('novo-medico-nome').value = '';
-            document.getElementById('novo-medico-crm').value = ''; // Limpa o campo CRM também
+            document.getElementById('novo-medico-crm').value = '';
             document.getElementById('btn-salvar-medico').textContent = 'Salvar';
             document.getElementById('btn-salvar-medico').onclick = salvarNovoMedico;
             document.getElementById('modal-novo-medico').classList.remove('hidden');
@@ -1322,11 +1330,10 @@
                 }
             }
         }
-        
+
         // ----------------------------------------------------
         // FUNÇÕES DE BACKUP E RESTAURAÇÃO
         // ----------------------------------------------------
-
         async function fazerBackup() {
             try {
                 const [
